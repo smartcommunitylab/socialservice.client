@@ -35,7 +35,8 @@ public class SharedContent implements Comparable<SharedContent> {
 	 */
 	private long entityId;
 	/**
-	 * type of resource
+	 * type of resource core entityTypes : social, community, event, experience,
+	 * computer file, journey, person, location, portfolio, narrative
 	 */
 	private String entityType;
 	/**

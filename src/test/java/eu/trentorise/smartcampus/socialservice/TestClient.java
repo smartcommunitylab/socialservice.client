@@ -1,5 +1,6 @@
 package eu.trentorise.smartcampus.socialservice;
 
+import java.util.Arrays;
 import java.util.List;
 
 import junit.framework.Assert;
@@ -7,6 +8,9 @@ import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import eu.trentorise.smartcampus.socialservice.model.Concept;
+import eu.trentorise.smartcampus.socialservice.model.Entity;
+import eu.trentorise.smartcampus.socialservice.model.EntityType;
 import eu.trentorise.smartcampus.socialservice.model.ShareOperation;
 import eu.trentorise.smartcampus.socialservice.model.ShareVisibility;
 import eu.trentorise.smartcampus.socialservice.model.SharedContent;
@@ -14,12 +18,13 @@ import eu.trentorise.smartcampus.socialservice.model.SharedContent;
 public class TestClient {
 
 	private static final String AUTH_TOKEN = "";
+	private static final long CREATOR_ID = -1l;
 
 	private SocialService socialService;
 
 	@Before
 	public void init() {
-		socialService = new SocialService("https://vas-dev.smartcampuslab.it");
+		socialService = new SocialService("http://localhost:8080");
 	}
 
 	@Test
@@ -58,5 +63,48 @@ public class TestClient {
 
 		Assert.assertNotNull(socialService.getShareVisibility(AUTH_TOKEN,
 				contents.get(0).getEntityId()));
+	}
+
+	@Test
+	public void entityTypes() throws SecurityException, SocialServiceException {
+		List<Concept> concepts = socialService.getConceptByPrefix(AUTH_TOKEN,
+				"test", 1);
+		Assert.assertNotNull(concepts);
+		Assert.assertTrue(concepts.size() > 0);
+		Assert.assertNull(socialService.getEntityTypeByConceptId(AUTH_TOKEN,
+				concepts.get(0).getId()));
+		socialService.createEntityType(AUTH_TOKEN, concepts.get(0).getId());
+		Assert.assertNotNull(socialService.getEntityTypeByConceptId(AUTH_TOKEN,
+				concepts.get(0).getId()));
+	}
+
+	@Test
+	public void entities() throws SecurityException, SocialServiceException {
+		List<Concept> concepts = socialService.getConceptByPrefix(AUTH_TOKEN,
+				"test", 1);
+		Assert.assertNotNull(concepts);
+		Assert.assertTrue(concepts.size() > 0);
+		EntityType type = socialService.getEntityTypeByConceptId(AUTH_TOKEN,
+				concepts.get(0).getId());
+		if (type == null) {
+			type = socialService.createEntityType(AUTH_TOKEN, concepts.get(0)
+					.getId());
+		}
+		Entity entity = new Entity();
+		entity.setCreatorId(CREATOR_ID);
+		entity.setDescription("entity description");
+		entity.setName("entity test");
+		entity.setType(type.getName());
+		entity.setTags(Arrays.asList(concepts.get(0), concepts.get(1),
+				concepts.get(2)));
+
+		entity = socialService.createEntity(AUTH_TOKEN, entity);
+		Assert.assertNotNull(entity);
+		Assert.assertNotNull(entity.getId());
+		Assert.assertEquals("entity description", entity.getDescription());
+
+		entity.setDescription("MODIFIED");
+		Assert.assertTrue(socialService.updateEntity(AUTH_TOKEN, entity));
+		Assert.assertTrue(socialService.deleteEntity(AUTH_TOKEN, entity.getId()));
 	}
 }

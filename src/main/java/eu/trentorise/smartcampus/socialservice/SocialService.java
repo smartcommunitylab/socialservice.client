@@ -3,6 +3,9 @@ package eu.trentorise.smartcampus.socialservice;
 import java.util.List;
 
 import eu.trentorise.smartcampus.socialservice.model.Community;
+import eu.trentorise.smartcampus.socialservice.model.Concept;
+import eu.trentorise.smartcampus.socialservice.model.Entity;
+import eu.trentorise.smartcampus.socialservice.model.EntityType;
 import eu.trentorise.smartcampus.socialservice.model.Group;
 import eu.trentorise.smartcampus.socialservice.model.ShareOperation;
 import eu.trentorise.smartcampus.socialservice.model.ShareVisibility;
@@ -208,5 +211,122 @@ public class SocialService {
 	public ShareVisibility getShareVisibility(String token, long entityId)
 			throws SecurityException, SocialServiceException {
 		return RemoteConnector.getShareVisibility(serviceUrl, token, entityId);
+	}
+
+	/**
+	 * creates a new entity type
+	 * 
+	 * @param token
+	 *            authentication token
+	 * @param conceptId
+	 *            id of the concept relative to new entity type
+	 * @return the entity type created
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public EntityType createEntityType(String token, long conceptId)
+			throws SecurityException, SocialServiceException {
+		return RemoteConnector.createEntityType(serviceUrl, token, conceptId);
+	}
+
+	/**
+	 * retrieves entity type by its id
+	 * 
+	 * @param token
+	 *            authentication token
+	 * @param entityTypeId
+	 *            entity type id
+	 * @return the entity type
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public EntityType getEntityTypeById(String token, long entityTypeId)
+			throws SecurityException, SocialServiceException {
+		return RemoteConnector.getEntityTypeById(serviceUrl, token,
+				entityTypeId);
+	}
+
+	/**
+	 * retrieves entity type by related concept id
+	 * 
+	 * @param token
+	 *            authentication token
+	 * @param conceptId
+	 *            id of the concept
+	 * @return the entity type related with the concept
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public EntityType getEntityTypeByConceptId(String token, long conceptId)
+			throws SecurityException, SocialServiceException {
+		return RemoteConnector.getEntityTypeByConceptId(serviceUrl, token,
+				conceptId);
+	}
+
+	/**
+	 * retrieves a list of tags by a prefix for a maximum number of results
+	 * 
+	 * @param token
+	 *            authentication token
+	 * @param prefix
+	 *            prefix to search in tag name
+	 * @param maxResults
+	 *            maximum number of results to retrieves
+	 * @return the list of tags that contain the prefix
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public List<Concept> getConceptByPrefix(String token, String prefix,
+			int maxResults) throws SecurityException, SocialServiceException {
+		return RemoteConnector.getConceptsByPrefix(serviceUrl, token, prefix,
+				maxResults);
+	}
+
+	/**
+	 * creates an entity
+	 * 
+	 * @param token
+	 *            authentication token
+	 * @param entity
+	 *            entity to create
+	 * @return entity created with id field populated
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public Entity createEntity(String token, Entity entity)
+			throws SecurityException, SocialServiceException {
+		return RemoteConnector.createEntity(serviceUrl, token, entity);
+	}
+
+	/**
+	 * deletes an entity
+	 * 
+	 * @param token
+	 *            authentication token
+	 * @param entityId
+	 *            id of the entity to delete
+	 * @return true if operation gone fine, false otherwise
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public boolean deleteEntity(String token, long entityId)
+			throws SecurityException, SocialServiceException {
+		return RemoteConnector.deleteEntity(serviceUrl, token, entityId);
+	}
+
+	/**
+	 * updates an entity
+	 * 
+	 * @param token
+	 *            authentication token
+	 * @param entity
+	 *            entity to update
+	 * @return true if operation gone fine, false otherwise
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public boolean updateEntity(String token, Entity entity)
+			throws SecurityException, SocialServiceException {
+		return RemoteConnector.updateEntity(serviceUrl, token, entity);
 	}
 }

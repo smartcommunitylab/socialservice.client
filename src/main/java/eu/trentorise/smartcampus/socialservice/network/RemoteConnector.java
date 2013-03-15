@@ -37,6 +37,9 @@ import org.apache.http.util.EntityUtils;
 
 import eu.trentorise.smartcampus.socialservice.SocialServiceException;
 import eu.trentorise.smartcampus.socialservice.model.Community;
+import eu.trentorise.smartcampus.socialservice.model.Concept;
+import eu.trentorise.smartcampus.socialservice.model.Entity;
+import eu.trentorise.smartcampus.socialservice.model.EntityType;
 import eu.trentorise.smartcampus.socialservice.model.Group;
 import eu.trentorise.smartcampus.socialservice.model.ShareOperation;
 import eu.trentorise.smartcampus.socialservice.model.ShareVisibility;
@@ -57,7 +60,7 @@ public class RemoteConnector {
 	private static final String RH_AUTH_TOKEN = "AUTH_TOKEN";
 	/** Service path */
 	private static final String SERVICE = "/smartcampus.vas.community-manager.web/";
-	/** Basic profile path */
+
 	private static final String GROUP = "eu.trentorise.smartcampus.cm.model.Group/";
 
 	private static final String COMMUNITY = "eu.trentorise.smartcampus.cm.model.Community/";
@@ -73,6 +76,16 @@ public class RemoteConnector {
 	private static final String SHARE = "share/";
 
 	private static final String UNSHARE = "unshare/";
+
+	private static final String CREATE_ENTITY_TYPES = "entitytype/";
+
+	private static final String GET_ENTITY_TYPE_BY_ID = "entitytype-by-id/";
+
+	private static final String GET_ENTITY_TYPE_BY_CONCEPT_ID = "entitytype-by-conceptid/";
+
+	private static final String GET_CONCEPTS = "suggestion/";
+
+	private static final String ENTITY = "entity/";
 
 	/** Timeout (in ms) we specify for each http request */
 	public static final int HTTP_REQUEST_TIMEOUT_MS = 30 * 1000;
@@ -167,6 +180,56 @@ public class RemoteConnector {
 		return new Boolean(json);
 	}
 
+	public static EntityType createEntityType(String host, String token,
+			long conceptId) throws SecurityException, SocialServiceException {
+		String json = postJSON(host, SERVICE + CREATE_ENTITY_TYPES + conceptId,
+				"", token, null, null, null);
+		return EntityType.toObject(json);
+	}
+
+	public static EntityType getEntityTypeById(String host, String token,
+			long entityTypeId) throws SecurityException, SocialServiceException {
+		String json = getJSON(host, SERVICE + GET_ENTITY_TYPE_BY_ID
+				+ entityTypeId, token, null, null, null);
+		return EntityType.toObject(json);
+	}
+
+	public static EntityType getEntityTypeByConceptId(String host,
+			String token, long conceptId) throws SecurityException,
+			SocialServiceException {
+		String json = getJSON(host, SERVICE + GET_ENTITY_TYPE_BY_CONCEPT_ID
+				+ conceptId, token, null, null, null);
+		return EntityType.toObject(json);
+	}
+
+	public static List<Concept> getConceptsByPrefix(String host, String token,
+			String prefix, int maxResults) throws SecurityException,
+			SocialServiceException {
+		String json = getJSON(host, SERVICE + GET_CONCEPTS + prefix + "/"
+				+ maxResults, token, null, null, null);
+		return Concept.toList(json);
+	}
+
+	public static Entity createEntity(String host, String token, Entity entity)
+			throws SecurityException, SocialServiceException {
+		String json = postJSON(host, SERVICE + ENTITY, Entity.toJson(entity),
+				token, null, null, null);
+		return Entity.toObject(json);
+	}
+
+	public static boolean updateEntity(String host, String token, Entity entity)
+			throws SecurityException, SocialServiceException {
+		String json = putJSON(host, SERVICE + ENTITY, Entity.toJson(entity),
+				token);
+		return new Boolean(json);
+	}
+
+	public static boolean deleteEntity(String host, String token, long entityId)
+			throws SecurityException, SocialServiceException {
+		String json = deleteJSON(host, SERVICE + ENTITY + entityId, token);
+		return new Boolean(json);
+	}
+
 	private static String getJSON(String host, String service, String token,
 			Integer position, Integer size, String type)
 			throws SecurityException, SocialServiceException {
@@ -230,8 +293,15 @@ public class RemoteConnector {
 			if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_FORBIDDEN) {
 				throw new SecurityException();
 			}
-			throw new SocialServiceException("Error validating "
-					+ resp.getStatusLine());
+
+			String msg = "";
+			try {
+				msg = response.substring(response.indexOf("<h1>") + 4,
+						response.indexOf("</h1>", response.indexOf("<h1>")));
+			} catch (Exception e) {
+				msg = resp.getStatusLine().toString();
+			}
+			throw new SocialServiceException(msg);
 		} catch (ClientProtocolException e) {
 			throw new SocialServiceException(e.getMessage(), e);
 		} catch (ParseException e) {

@@ -16,6 +16,7 @@
 
 package eu.trentorise.smartcampus.socialservice.model;
 
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -105,5 +106,17 @@ public class Concept {
 		} catch (JSONException e) {
 			return null;
 		}
+	}
+
+	public static String toJson(Concept c) {
+		StringWriter writer = new StringWriter();
+		writer.write("{");
+		writer.write("\"id\":" + c.getId() + ",");
+		writer.write("\"description\":" + JSONObject.quote(c.getDescription())
+				+ ",");
+		writer.write("\"name\":" + JSONObject.quote(c.getName()) + ",");
+		writer.write("\"summary\":" + JSONObject.quote(c.getSummary()));
+		writer.write("}");
+		return writer.toString();
 	}
 }
