@@ -15,8 +15,13 @@
  ******************************************************************************/
 package eu.trentorise.smartcampus.socialservice;
 
+import java.net.URLEncoder;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import eu.trentorise.smartcampus.network.RemoteConnector;
+import eu.trentorise.smartcampus.network.RemoteException;
 import eu.trentorise.smartcampus.socialservice.model.Community;
 import eu.trentorise.smartcampus.socialservice.model.Concept;
 import eu.trentorise.smartcampus.socialservice.model.Entity;
@@ -26,7 +31,6 @@ import eu.trentorise.smartcampus.socialservice.model.ShareOperation;
 import eu.trentorise.smartcampus.socialservice.model.ShareVisibility;
 import eu.trentorise.smartcampus.socialservice.model.SharedContent;
 import eu.trentorise.smartcampus.socialservice.model.Topic;
-import eu.trentorise.smartcampus.socialservice.network.RemoteConnector;
 
 /**
  * Service APIs
@@ -36,7 +40,40 @@ import eu.trentorise.smartcampus.socialservice.network.RemoteConnector;
  */
 public class SocialService {
 
+	/** Service path */
+	private static final String SERVICE = "/smartcampus.vas.community-manager.web/";
+
+	private static final String GROUP = "eu.trentorise.smartcampus.cm.model.Group/";
+
+	private static final String COMMUNITY = "eu.trentorise.smartcampus.cm.model.Community/";
+
+	private static final String TOPIC = "eu.trentorise.smartcampus.cm.model.Topic/";
+
+	private static final String VISIBILITY = "assignments/";
+
+	private static final String MY_CONTENTS = "content/";
+
+	private static final String SHARED_CONTENT = "sharedcontent/";
+
+	private static final String SHARE = "share/";
+
+	private static final String UNSHARE = "unshare/";
+
+	private static final String CREATE_ENTITY_TYPES = "entitytype/";
+
+	private static final String GET_ENTITY_TYPE_BY_ID = "entitytype-by-id/";
+
+	private static final String GET_ENTITY_TYPE_BY_CONCEPT_ID = "entitytype-by-conceptid/";
+
+	private static final String GET_ENTITY_TYPE_BY_NAME = "entitytype-by-name/";
+
+	private static final String GET_CONCEPTS = "suggestion/";
+
+	private static final String ENTITY = "entity/";
+
 	private String serviceUrl;
+
+	private final static String ENCODE_FORMAT = "utf8";
 
 	public SocialService(String serviceUrl) {
 		this.serviceUrl = serviceUrl;
@@ -53,7 +90,13 @@ public class SocialService {
 	 */
 	public List<Group> getGroups(String token) throws SecurityException,
 			SocialServiceException {
-		return RemoteConnector.getGroups(serviceUrl, token);
+		try {
+			String json = RemoteConnector.getJSON(serviceUrl, SERVICE + GROUP,
+					token, null);
+			return Group.toList(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
 	}
 
 	/**
@@ -69,7 +112,14 @@ public class SocialService {
 	 */
 	public Group getGroup(String groupId, String token)
 			throws SecurityException, SocialServiceException {
-		return RemoteConnector.getGroup(serviceUrl, token, groupId);
+		try {
+			String json = RemoteConnector.getJSON(serviceUrl, SERVICE + GROUP
+					+ groupId, token, null);
+			return Group.toObject(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+
+		}
 	}
 
 	/**
@@ -85,7 +135,13 @@ public class SocialService {
 	 */
 	public Community getCommunity(String communityId, String token)
 			throws SecurityException, SocialServiceException {
-		return RemoteConnector.getCommunity(serviceUrl, token, communityId);
+		try {
+			String json = RemoteConnector.getJSON(serviceUrl, SERVICE
+					+ COMMUNITY + communityId, token, null);
+			return Community.toObject(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
 	}
 
 	/**
@@ -99,7 +155,13 @@ public class SocialService {
 	 */
 	public List<Community> getCommunities(String token)
 			throws SecurityException, SocialServiceException {
-		return RemoteConnector.getCommunities(serviceUrl, token);
+		try {
+			String json = RemoteConnector.getJSON(serviceUrl, SERVICE
+					+ COMMUNITY, token, null);
+			return Community.toList(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
 	}
 
 	/**
@@ -113,7 +175,13 @@ public class SocialService {
 	 */
 	public List<Topic> getTopics(String token) throws SecurityException,
 			SocialServiceException {
-		return RemoteConnector.getTopics(serviceUrl, token);
+		try {
+			String json = RemoteConnector.getJSON(serviceUrl, SERVICE + TOPIC,
+					token, null);
+			return Topic.toList(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
 	}
 
 	/**
@@ -129,7 +197,13 @@ public class SocialService {
 	 */
 	public Topic getTopic(String token, String topicId)
 			throws SecurityException, SocialServiceException {
-		return RemoteConnector.getTopic(serviceUrl, token, topicId);
+		try {
+			String json = RemoteConnector.getJSON(serviceUrl, SERVICE + TOPIC
+					+ topicId, token, null);
+			return Topic.toObject(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
 	}
 
 	/**
@@ -145,7 +219,13 @@ public class SocialService {
 	 */
 	public boolean share(String token, ShareOperation shareOperation)
 			throws SecurityException, SocialServiceException {
-		return RemoteConnector.share(serviceUrl, token, shareOperation);
+		try {
+			String json = RemoteConnector.postJSON(serviceUrl, SERVICE + SHARE,
+					ShareOperation.toJson(shareOperation), token, null);
+			return new Boolean(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
 	}
 
 	/**
@@ -161,7 +241,13 @@ public class SocialService {
 	 */
 	public boolean unshare(String token, long entityId)
 			throws SecurityException, SocialServiceException {
-		return RemoteConnector.unshare(serviceUrl, token, entityId);
+		try {
+			String json = RemoteConnector.putJSON(serviceUrl, SERVICE + UNSHARE
+					+ entityId, "", token);
+			return new Boolean(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
 	}
 
 	/**
@@ -185,9 +271,26 @@ public class SocialService {
 	 */
 	public List<SharedContent> getSharedContents(String token,
 			ShareVisibility shareVisibility, Integer position, Integer size,
-			String type) throws SecurityException, SocialServiceException {
-		return RemoteConnector.getSharedContents(serviceUrl, token,
-				shareVisibility, position, size, type);
+			Long typeId) throws SecurityException, SocialServiceException {
+		try {
+			Map<String, Object> parameters = new HashMap<String, Object>();
+			if (position == null) {
+				position = -1;
+			}
+			if (size == null) {
+				size = -1;
+			}
+
+			parameters.put("position", position);
+			parameters.put("size", size);
+			parameters.put("type", typeId);
+			String json = RemoteConnector.postJSON(serviceUrl, SERVICE
+					+ SHARED_CONTENT, ShareVisibility.toJson(shareVisibility),
+					token, parameters);
+			return SharedContent.toList(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
 	}
 
 	/**
@@ -206,10 +309,26 @@ public class SocialService {
 	 * @throws SocialServiceException
 	 */
 	public List<SharedContent> getMyContents(String token, Integer position,
-			Integer size, String type) throws SecurityException,
+			Integer size, Long typeId) throws SecurityException,
 			SocialServiceException {
-		return RemoteConnector.getMyContents(serviceUrl, token, position, size,
-				type);
+		try {
+			Map<String, Object> parameters = new HashMap<String, Object>();
+			if (position == null) {
+				position = -1;
+			}
+			if (size == null) {
+				size = -1;
+			}
+
+			parameters.put("position", position);
+			parameters.put("size", size);
+			parameters.put("type", typeId);
+			String json = RemoteConnector.getJSON(serviceUrl, SERVICE
+					+ MY_CONTENTS, token, parameters);
+			return SharedContent.toList(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
 	}
 
 	/**
@@ -225,7 +344,14 @@ public class SocialService {
 	 */
 	public ShareVisibility getShareVisibility(String token, long entityId)
 			throws SecurityException, SocialServiceException {
-		return RemoteConnector.getShareVisibility(serviceUrl, token, entityId);
+		try {
+			String json = RemoteConnector.getJSON(serviceUrl, SERVICE
+					+ VISIBILITY + entityId, token, null);
+			return ShareVisibility.toObject(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
+
 	}
 
 	/**
@@ -241,7 +367,13 @@ public class SocialService {
 	 */
 	public EntityType createEntityType(String token, long conceptId)
 			throws SecurityException, SocialServiceException {
-		return RemoteConnector.createEntityType(serviceUrl, token, conceptId);
+		try {
+			String json = RemoteConnector.postJSON(serviceUrl, SERVICE
+					+ CREATE_ENTITY_TYPES + conceptId, "", token, null);
+			return EntityType.toObject(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
 	}
 
 	/**
@@ -257,8 +389,13 @@ public class SocialService {
 	 */
 	public EntityType getEntityTypeById(String token, long entityTypeId)
 			throws SecurityException, SocialServiceException {
-		return RemoteConnector.getEntityTypeById(serviceUrl, token,
-				entityTypeId);
+		try {
+			String json = RemoteConnector.getJSON(serviceUrl, SERVICE
+					+ GET_ENTITY_TYPE_BY_ID + entityTypeId, token, null);
+			return EntityType.toObject(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
 	}
 
 	/**
@@ -274,8 +411,26 @@ public class SocialService {
 	 */
 	public EntityType getEntityTypeByConceptId(String token, long conceptId)
 			throws SecurityException, SocialServiceException {
-		return RemoteConnector.getEntityTypeByConceptId(serviceUrl, token,
-				conceptId);
+		try {
+			String json = RemoteConnector.getJSON(serviceUrl, SERVICE
+					+ GET_ENTITY_TYPE_BY_CONCEPT_ID + conceptId, token, null);
+			return EntityType.toObject(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	public EntityType getEntityTypeByName(String token, String name)
+			throws SocialServiceException {
+		try {
+			name = URLEncoder.encode(name, ENCODE_FORMAT);
+			String json = RemoteConnector.getJSON(serviceUrl, SERVICE
+					+ GET_ENTITY_TYPE_BY_NAME + name, token, null);
+			return EntityType.toObject(json);
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
+
 	}
 
 	/**
@@ -293,8 +448,14 @@ public class SocialService {
 	 */
 	public List<Concept> getConceptByPrefix(String token, String prefix,
 			int maxResults) throws SecurityException, SocialServiceException {
-		return RemoteConnector.getConceptsByPrefix(serviceUrl, token, prefix,
-				maxResults);
+		try {
+			prefix = URLEncoder.encode(prefix, ENCODE_FORMAT);
+			String json = RemoteConnector.getJSON(serviceUrl, SERVICE
+					+ GET_CONCEPTS + prefix + "/" + maxResults, token, null);
+			return Concept.toList(json);
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
 	}
 
 	/**
@@ -310,7 +471,13 @@ public class SocialService {
 	 */
 	public Entity createEntity(String token, Entity entity)
 			throws SecurityException, SocialServiceException {
-		return RemoteConnector.createEntity(serviceUrl, token, entity);
+		try {
+			String json = RemoteConnector.postJSON(serviceUrl,
+					SERVICE + ENTITY, Entity.toJson(entity), token, null);
+			return Entity.toObject(json);
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
 	}
 
 	/**
@@ -326,7 +493,13 @@ public class SocialService {
 	 */
 	public boolean deleteEntity(String token, long entityId)
 			throws SecurityException, SocialServiceException {
-		return RemoteConnector.deleteEntity(serviceUrl, token, entityId);
+		try {
+			String json = RemoteConnector.deleteJSON(serviceUrl, SERVICE
+					+ ENTITY + entityId, token);
+			return new Boolean(json);
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
 	}
 
 	/**
@@ -342,6 +515,12 @@ public class SocialService {
 	 */
 	public boolean updateEntity(String token, Entity entity)
 			throws SecurityException, SocialServiceException {
-		return RemoteConnector.updateEntity(serviceUrl, token, entity);
+		try {
+			String json = RemoteConnector.putJSON(serviceUrl, SERVICE + ENTITY,
+					Entity.toJson(entity), token);
+			return new Boolean(json);
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
 	}
 }

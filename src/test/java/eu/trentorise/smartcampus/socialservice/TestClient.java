@@ -32,9 +32,6 @@ import eu.trentorise.smartcampus.socialservice.model.SharedContent;
 
 public class TestClient {
 
-	private static final String AUTH_TOKEN = "";
-	private static final long CREATOR_ID = -1l;
-
 	private SocialService socialService;
 
 	@Before
@@ -44,17 +41,17 @@ public class TestClient {
 
 	@Test
 	public void groups() throws SecurityException, SocialServiceException {
-		Assert.assertNotNull(socialService.getGroups(AUTH_TOKEN));
+		Assert.assertNotNull(socialService.getGroups(Constants.AUTH_TOKEN));
 	}
 
 	@Test
 	public void communities() throws SecurityException, SocialServiceException {
-		Assert.assertNotNull(socialService.getCommunities(AUTH_TOKEN));
+		Assert.assertNotNull(socialService.getCommunities(Constants.AUTH_TOKEN));
 	}
 
 	@Test
 	public void topics() throws SecurityException, SocialServiceException {
-		Assert.assertNotNull(socialService.getTopics(AUTH_TOKEN));
+		Assert.assertNotNull(socialService.getTopics(Constants.AUTH_TOKEN));
 	}
 
 	@Test
@@ -66,60 +63,72 @@ public class TestClient {
 		visibility.setAllKnownUsers(true);
 		visibility.setAllUsers(true);
 
-		socialService.getSharedContents(AUTH_TOKEN, visibility, 0, 10, null);
-		List<SharedContent> contents = socialService.getMyContents(AUTH_TOKEN,
-				0, 5, null);
+		socialService.getSharedContents(Constants.AUTH_TOKEN, visibility, 0,
+				10, null);
+		List<SharedContent> contents = socialService.getMyContents(
+				Constants.AUTH_TOKEN, 0, 5, null);
 		Assert.assertTrue(contents.size() > 0);
 
 		ShareOperation shareOperation = new ShareOperation();
 		shareOperation.setEntityId(contents.get(0).getEntityId());
 		shareOperation.setVisibility(visibility);
-		Assert.assertTrue(socialService.share(AUTH_TOKEN, shareOperation));
+		Assert.assertTrue(socialService.share(Constants.AUTH_TOKEN,
+				shareOperation));
 
-		Assert.assertNotNull(socialService.getShareVisibility(AUTH_TOKEN,
-				contents.get(0).getEntityId()));
+		Assert.assertNotNull(socialService.getShareVisibility(
+				Constants.AUTH_TOKEN, contents.get(0).getEntityId()));
 	}
 
 	@Test
 	public void entityTypes() throws SecurityException, SocialServiceException {
-		List<Concept> concepts = socialService.getConceptByPrefix(AUTH_TOKEN,
-				"test", 1);
+		List<Concept> concepts = socialService.getConceptByPrefix(
+				Constants.AUTH_TOKEN, "test", 1);
 		Assert.assertNotNull(concepts);
 		Assert.assertTrue(concepts.size() > 0);
-		Assert.assertNull(socialService.getEntityTypeByConceptId(AUTH_TOKEN,
-				concepts.get(0).getId()));
-		socialService.createEntityType(AUTH_TOKEN, concepts.get(0).getId());
-		Assert.assertNotNull(socialService.getEntityTypeByConceptId(AUTH_TOKEN,
-				concepts.get(0).getId()));
+		if (socialService.getEntityTypeByConceptId(Constants.AUTH_TOKEN,
+				concepts.get(0).getId()) == null) {
+			socialService.createEntityType(Constants.AUTH_TOKEN, concepts
+					.get(0).getId());
+		}
+		Assert.assertNotNull(socialService.getEntityTypeByConceptId(
+				Constants.AUTH_TOKEN, concepts.get(0).getId()));
 	}
 
 	@Test
 	public void entities() throws SecurityException, SocialServiceException {
-		List<Concept> concepts = socialService.getConceptByPrefix(AUTH_TOKEN,
-				"test", 1);
+
+		Assert.assertNotNull(socialService.getEntityTypeByName(
+				Constants.AUTH_TOKEN, "event"));
+		Assert.assertNull(socialService.getEntityTypeByName(
+				Constants.AUTH_TOKEN, "dummie"));
+
+		List<Concept> concepts = socialService.getConceptByPrefix(
+				Constants.AUTH_TOKEN, "test", 1);
 		Assert.assertNotNull(concepts);
 		Assert.assertTrue(concepts.size() > 0);
-		EntityType type = socialService.getEntityTypeByConceptId(AUTH_TOKEN,
-				concepts.get(0).getId());
+		EntityType type = socialService.getEntityTypeByConceptId(
+				Constants.AUTH_TOKEN, concepts.get(0).getId());
 		if (type == null) {
-			type = socialService.createEntityType(AUTH_TOKEN, concepts.get(0)
-					.getId());
+			type = socialService.createEntityType(Constants.AUTH_TOKEN,
+					concepts.get(0).getId());
 		}
 		Entity entity = new Entity();
-		entity.setCreatorId(CREATOR_ID);
+		entity.setCreatorId(Constants.CREATOR_ID);
 		entity.setDescription("entity description");
 		entity.setName("entity test");
 		entity.setType(type.getName());
 		entity.setTags(Arrays.asList(concepts.get(0), concepts.get(1),
 				concepts.get(2)));
 
-		entity = socialService.createEntity(AUTH_TOKEN, entity);
+		entity = socialService.createEntity(Constants.AUTH_TOKEN, entity);
 		Assert.assertNotNull(entity);
 		Assert.assertNotNull(entity.getId());
 		Assert.assertEquals("entity description", entity.getDescription());
 
 		entity.setDescription("MODIFIED");
-		Assert.assertTrue(socialService.updateEntity(AUTH_TOKEN, entity));
-		Assert.assertTrue(socialService.deleteEntity(AUTH_TOKEN, entity.getId()));
+		Assert.assertTrue(socialService.updateEntity(Constants.AUTH_TOKEN,
+				entity));
+		Assert.assertTrue(socialService.deleteEntity(Constants.AUTH_TOKEN,
+				entity.getId()));
 	}
 }
