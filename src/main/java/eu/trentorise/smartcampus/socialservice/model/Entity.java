@@ -40,11 +40,11 @@ public class Entity {
 	 */
 	private long creatorId;
 	/**
-	 * type of the entity. Core entity types are: social, community, event,
-	 * experience, computer file, journey, person, location, portfolio,
-	 * narrative
+	 * type of the entity. It MUST be setted name or id field or either
 	 */
 	private String type;
+
+	private long typeId;
 	/**
 	 * name of the entity
 	 */
@@ -138,6 +138,7 @@ public class Entity {
 			e.setTags(Concept.toList(object.getString("tags")));
 
 			e.setType(object.getString("type"));
+			e.setTypeId(object.getLong("typeId"));
 			return e;
 		} catch (JSONException e) {
 			return null;
@@ -164,10 +165,17 @@ public class Entity {
 		StringWriter writer = new StringWriter();
 		writer.write("{");
 		writer.write("\"id\":" + e.getId() + ",");
-		writer.write("\"name\":\"" + e.getName() + "\",");
-		writer.write("\"description\":\"" + e.getDescription() + "\",");
+		writer.write("\"name\":"
+				+ JSONObject.quote((e.getName() != null ? e.getName() : ""))
+				+ ",");
+		writer.write("\"description\":"
+				+ JSONObject.quote((e.getDescription() != null ? e
+						.getDescription() : "")) + ",");
 		writer.write("\"creatorId\":" + e.getCreatorId() + ",");
-		writer.write("\"type\":\"" + e.getType() + "\",");
+		writer.write("\"type\":"
+				+ JSONObject.quote((e.getType() != null ? e.getType() : ""))
+				+ ",");
+		writer.write("\"typeId\":" + e.getTypeId() + ",");
 		writer.write("\"relations\":[");
 		if (e.getRelations() != null) {
 			boolean isFirst = true;
@@ -194,5 +202,13 @@ public class Entity {
 		writer.write("]");
 		writer.write("}");
 		return writer.toString();
+	}
+
+	public long getTypeId() {
+		return typeId;
+	}
+
+	public void setTypeId(long typeId) {
+		this.typeId = typeId;
 	}
 }

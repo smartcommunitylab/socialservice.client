@@ -65,7 +65,7 @@ public class SocialService {
 
 	private static final String GET_ENTITY_TYPE_BY_CONCEPT_ID = "entitytype-by-conceptid/";
 
-	private static final String GET_ENTITY_TYPE_BY_NAME = "entitytype-by-name/";
+	private static final String GET_ENTITY_TYPE_BY_PREFIX = "entitytype-by-prefix/";
 
 	private static final String GET_CONCEPTS = "suggestion/";
 
@@ -420,13 +420,29 @@ public class SocialService {
 		}
 	}
 
-	public EntityType getEntityTypeByName(String token, String name)
-			throws SocialServiceException {
+	/**
+	 * Retrieves a list of entity types that satisfy given prefix, sized by
+	 * maxResults parameter (if it is setted)
+	 * 
+	 * @param token
+	 *            authentication token
+	 * @param prefix
+	 *            prefix of entity type name to search
+	 * @param maxResults
+	 *            max number of results, if you leave null default value is 20
+	 * @return
+	 * @throws SocialServiceException
+	 */
+
+	public List<EntityType> getEntityTypeByPrefix(String token, String prefix,
+			Integer maxResults) throws SocialServiceException {
 		try {
-			name = URLEncoder.encode(name, ENCODE_FORMAT);
+			Map<String, Object> parameters = new HashMap<String, Object>();
+			parameters.put("maxResults", maxResults);
+			prefix = URLEncoder.encode(prefix, ENCODE_FORMAT);
 			String json = RemoteConnector.getJSON(serviceUrl, SERVICE
-					+ GET_ENTITY_TYPE_BY_NAME + name, token, null);
-			return EntityType.toObject(json);
+					+ GET_ENTITY_TYPE_BY_PREFIX + prefix, token, parameters);
+			return EntityType.toList(json);
 		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
@@ -441,17 +457,21 @@ public class SocialService {
 	 * @param prefix
 	 *            prefix to search in tag name
 	 * @param maxResults
-	 *            maximum number of results to retrieves
+	 *            maximum number of results to retrieves, if you leave null
+	 *            default number is 20
 	 * @return the list of tags that contain the prefix
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
 	public List<Concept> getConceptByPrefix(String token, String prefix,
-			int maxResults) throws SecurityException, SocialServiceException {
+			Integer maxResults) throws SecurityException,
+			SocialServiceException {
 		try {
+			Map<String, Object> parameters = new HashMap<String, Object>();
+			parameters.put("maxResults", maxResults);
 			prefix = URLEncoder.encode(prefix, ENCODE_FORMAT);
 			String json = RemoteConnector.getJSON(serviceUrl, SERVICE
-					+ GET_CONCEPTS + prefix + "/" + maxResults, token, null);
+					+ GET_CONCEPTS + prefix, token, parameters);
 			return Concept.toList(json);
 		} catch (Exception e) {
 			throw new SocialServiceException(e);

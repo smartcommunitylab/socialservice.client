@@ -15,6 +15,10 @@
  ******************************************************************************/
 package eu.trentorise.smartcampus.socialservice.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -70,6 +74,22 @@ public class EntityType {
 			type.setName(object.getString("name"));
 			type.setConcept(Concept.toObject(object.getString("concept")));
 			return type;
+		} catch (JSONException e) {
+			return null;
+		}
+	}
+
+	public static List<EntityType> toList(String json) {
+		try {
+			JSONArray array = new JSONArray(json);
+			List<EntityType> listElements = new ArrayList<EntityType>();
+			for (int i = 0; array.optString(i).length() > 0; i++) {
+				String subElement = array.getString(i);
+				if (subElement != null) {
+					listElements.add(toObject(subElement));
+				}
+			}
+			return listElements;
 		} catch (JSONException e) {
 			return null;
 		}

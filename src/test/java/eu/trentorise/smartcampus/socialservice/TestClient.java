@@ -97,13 +97,17 @@ public class TestClient {
 	@Test
 	public void entities() throws SecurityException, SocialServiceException {
 
-		Assert.assertNotNull(socialService.getEntityTypeByName(
-				Constants.AUTH_TOKEN, "event"));
-		Assert.assertNull(socialService.getEntityTypeByName(
-				Constants.AUTH_TOKEN, "dummie"));
+		Assert.assertEquals(
+				1,
+				socialService.getEntityTypeByPrefix(Constants.AUTH_TOKEN,
+						"event", null).size());
+		Assert.assertEquals(
+				0,
+				socialService.getEntityTypeByPrefix(Constants.AUTH_TOKEN,
+						"dummie", null).size());
 
 		List<Concept> concepts = socialService.getConceptByPrefix(
-				Constants.AUTH_TOKEN, "test", 1);
+				Constants.AUTH_TOKEN, "test", null);
 		Assert.assertNotNull(concepts);
 		Assert.assertTrue(concepts.size() > 0);
 		EntityType type = socialService.getEntityTypeByConceptId(
@@ -130,5 +134,41 @@ public class TestClient {
 				entity));
 		Assert.assertTrue(socialService.deleteEntity(Constants.AUTH_TOKEN,
 				entity.getId()));
+
+		entity = new Entity();
+		entity.setCreatorId(Constants.CREATOR_ID);
+		entity.setDescription("entity description");
+		entity.setName("entity test");
+		entity.setTypeId(type.getId());
+
+		entity = socialService.createEntity(Constants.AUTH_TOKEN, entity);
+		Assert.assertNotNull(entity);
+		Assert.assertTrue(socialService.deleteEntity(Constants.AUTH_TOKEN,
+				entity.getId()));
+
+	}
+
+	@Test(expected = SocialServiceException.class)
+	public void entitiesFailure() throws SecurityException,
+			SocialServiceException {
+		List<Concept> concepts = socialService.getConceptByPrefix(
+				Constants.AUTH_TOKEN, "test", 1);
+		Assert.assertNotNull(concepts);
+		Assert.assertTrue(concepts.size() > 0);
+		EntityType type = socialService.getEntityTypeByConceptId(
+				Constants.AUTH_TOKEN, concepts.get(0).getId());
+		if (type == null) {
+			type = socialService.createEntityType(Constants.AUTH_TOKEN,
+					concepts.get(0).getId());
+		}
+		Entity entity = new Entity();
+		entity.setCreatorId(Constants.CREATOR_ID);
+		entity.setDescription("entity description");
+		entity.setName("entity test");
+		entity.setTags(Arrays.asList(concepts.get(0), concepts.get(1),
+				concepts.get(2)));
+
+		Assert.assertNotNull(socialService.createEntity(Constants.AUTH_TOKEN,
+				entity));
 	}
 }

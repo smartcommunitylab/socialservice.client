@@ -112,10 +112,15 @@ public class Concept {
 		StringWriter writer = new StringWriter();
 		writer.write("{");
 		writer.write("\"id\":" + c.getId() + ",");
-		writer.write("\"description\":" + JSONObject.quote(c.getDescription())
+		writer.write("\"description\":"
+				+ JSONObject.quote((c.getDescription() != null ? c
+						.getDescription() : "")) + ",");
+		writer.write("\"name\":"
+				+ JSONObject.quote((c.getName() != null ? c.getName() : ""))
 				+ ",");
-		writer.write("\"name\":" + JSONObject.quote(c.getName()) + ",");
-		writer.write("\"summary\":" + JSONObject.quote(c.getSummary()));
+		writer.write("\"summary\":"
+				+ JSONObject.quote((c.getSummary() != null ? c.getSummary()
+						: "")));
 		writer.write("}");
 		return writer.toString();
 	}
