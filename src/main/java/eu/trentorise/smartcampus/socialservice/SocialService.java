@@ -31,6 +31,7 @@ import eu.trentorise.smartcampus.socialservice.model.ShareOperation;
 import eu.trentorise.smartcampus.socialservice.model.ShareVisibility;
 import eu.trentorise.smartcampus.socialservice.model.SharedContent;
 import eu.trentorise.smartcampus.socialservice.model.Topic;
+import eu.trentorise.smartcampus.socialservice.model.Topic.TopicStatus;
 
 /**
  * Service APIs
@@ -47,7 +48,13 @@ public class SocialService {
 
 	private static final String COMMUNITY = "eu.trentorise.smartcampus.cm.model.Community/";
 
+	private static final String ADD_TO_COMMUNITY = "addtocommunity/";
+
+	private static final String REMOVE_FROM_COMMUNITY = "removefromcommunity/";
+
 	private static final String TOPIC = "eu.trentorise.smartcampus.cm.model.Topic/";
+
+	private static final String CHANGE_TOPIC_STATUS = "changestatus/";
 
 	private static final String VISIBILITY = "assignments/";
 
@@ -95,6 +102,71 @@ public class SocialService {
 					token, null);
 			return Group.toList(json);
 		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * Creates a group for authenticated user
+	 * 
+	 * @param token
+	 *            authentication token
+	 * @param name
+	 *            name of the new group
+	 * @return group created
+	 * @throws SocialServiceException
+	 */
+	public Group createGroup(String token, String name)
+			throws SocialServiceException {
+		try {
+			Group group = new Group();
+			group.setName(name);
+			String json = RemoteConnector.postJSON(serviceUrl, SERVICE + GROUP,
+					Group.toJson(group), token);
+			return Group.toObject(json);
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * Updates a group
+	 * 
+	 * @param token
+	 *            authentication token
+	 * @param group
+	 *            new group data
+	 * @return true if operation gone fine, false otherwise
+	 * @throws SocialServiceException
+	 */
+	public boolean updateGroup(String token, Group group)
+			throws SocialServiceException {
+		try {
+			String json = RemoteConnector.putJSON(serviceUrl, SERVICE + GROUP
+					+ group.getId(), Group.toJson(group), token);
+			return new Boolean(json);
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * Removes a group of authenticated user
+	 * 
+	 * @param token
+	 *            authentication token
+	 * @param groupId
+	 *            id of the group to delete
+	 * @return true if operation gone fine, false otherwise
+	 * @throws SocialServiceException
+	 */
+	public boolean deleteGroup(String token, String groupId)
+			throws SocialServiceException {
+		try {
+			String json = RemoteConnector.deleteJSON(serviceUrl, SERVICE
+					+ GROUP + groupId, token);
+			return new Boolean(json);
+		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
 	}
@@ -165,6 +237,48 @@ public class SocialService {
 	}
 
 	/**
+	 * Adds authenticated user to the given community
+	 * 
+	 * @param token
+	 *            authentication token
+	 * @param communityId
+	 *            id of community which add user to
+	 * @return true if operation gone fine, false otherwise
+	 * @throws SocialServiceException
+	 */
+	public boolean addUserToCommunity(String token, String communityId)
+			throws SocialServiceException {
+		try {
+			String json = RemoteConnector.putJSON(serviceUrl, SERVICE
+					+ ADD_TO_COMMUNITY + communityId, null, token);
+			return new Boolean(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * Removes authenticated user from the given community
+	 * 
+	 * @param token
+	 *            authentication token
+	 * @param communityId
+	 *            id of community which remove user from
+	 * @return true if operation gone fine, false otherwise
+	 * @throws SocialServiceException
+	 */
+	public boolean removeUserFromCommunity(String token, String communityId)
+			throws SocialServiceException {
+		try {
+			String json = RemoteConnector.putJSON(serviceUrl, SERVICE
+					+ REMOVE_FROM_COMMUNITY + communityId, token);
+			return new Boolean(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
 	 * retrieves all the topic created by the user
 	 * 
 	 * @param token
@@ -201,6 +315,94 @@ public class SocialService {
 			String json = RemoteConnector.getJSON(serviceUrl, SERVICE + TOPIC
 					+ topicId, token, null);
 			return Topic.toObject(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * Creates a topic for the authenticated user
+	 * 
+	 * @param token
+	 *            authentication token
+	 * @param topic
+	 *            topic to create
+	 * @return the topic created with populated id field
+	 * @throws SocialServiceException
+	 */
+	public Topic createTopic(String token, Topic topic)
+			throws SocialServiceException {
+		try {
+			String json = RemoteConnector.postJSON(serviceUrl, SERVICE + TOPIC,
+					Topic.toJson(topic), token);
+			return Topic.toObject(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * Deletes a topic of the authenticated user
+	 * 
+	 * @param token
+	 *            authentication token
+	 * @param topicId
+	 *            id of the topic to delete
+	 * @return true if operation gone fine, false otherwise
+	 * @throws SocialServiceException
+	 */
+	public boolean deleteTopic(String token, String topicId)
+			throws SocialServiceException {
+		try {
+			String json = RemoteConnector.deleteJSON(serviceUrl, SERVICE
+					+ TOPIC + topicId, token);
+			return new Boolean(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * Updates a topic of the authenticated user
+	 * 
+	 * @param token
+	 *            authentication token
+	 * @param topic
+	 *            topic to update
+	 * @return true if operation gone fine, false otherwise
+	 * @throws SocialServiceException
+	 */
+	public boolean updateTopic(String token, Topic topic)
+			throws SocialServiceException {
+		try {
+			String json = RemoteConnector.putJSON(serviceUrl, SERVICE + TOPIC
+					+ topic.getId(), Topic.toJson(topic), token);
+			return new Boolean(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * Changes the status of a topic of authenticated user
+	 * 
+	 * @param token
+	 *            authentication token
+	 * @param topicId
+	 *            id of the topic
+	 * @param topicStatus
+	 *            new status
+	 * @return true if operation gone fine, false otherwise
+	 * @throws SocialServiceException
+	 */
+	public boolean changeTopicStatus(String token, String topicId,
+			TopicStatus topicStatus) throws SocialServiceException {
+		try {
+			String json = RemoteConnector.putJSON(
+					serviceUrl,
+					SERVICE + CHANGE_TOPIC_STATUS + topicId + "/"
+							+ topicStatus.getValue(), token);
+			return new Boolean(json);
 		} catch (RemoteException e) {
 			throw new SocialServiceException(e);
 		}

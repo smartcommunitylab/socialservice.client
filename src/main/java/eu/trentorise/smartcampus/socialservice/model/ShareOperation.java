@@ -17,6 +17,8 @@ package eu.trentorise.smartcampus.socialservice.model;
 
 import java.io.StringWriter;
 
+import eu.trentorise.smartcampus.network.JsonUtils;
+
 /**
  * <i>ShareOperation</i> defines sharing options
  * 
@@ -50,15 +52,18 @@ public class ShareOperation {
 	}
 
 	public static String toJson(ShareOperation operation) {
-		StringWriter writer = new StringWriter();
-		writer.write("{");
-		writer.write("\"entityId\":" + operation.getEntityId() + ",");
-		writer.write("\"visibility\":"
-				+ ShareVisibility.toJson(operation.getVisibility()));
-
-		writer.write("}");
-
-		return writer.toString();
+		try {
+			StringWriter writer = new StringWriter();
+			writer.write("{");
+			writer.write("\"entityId\":"
+					+ JsonUtils.toJson(operation.getEntityId()) + ",");
+			writer.write("\"visibility\":"
+					+ JsonUtils.toJson(operation.getVisibility()));
+			writer.write("}");
+			return writer.toString();
+		} catch (NullPointerException e) {
+			return null;
+		}
 	}
 
 }

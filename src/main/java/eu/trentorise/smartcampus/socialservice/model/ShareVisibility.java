@@ -24,6 +24,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import eu.trentorise.smartcampus.network.JsonUtils;
+
 /**
  * <i>ShareVisibility</i> represents the sharing visibility options.
  * 
@@ -180,54 +182,28 @@ public class ShareVisibility {
 	}
 
 	public static String toJson(ShareVisibility visibility) {
-		StringWriter writer = new StringWriter();
-		writer.write("{");
-		writer.write("\"allCommunities\":" + visibility.isAllCommunities()
-				+ ",");
-		writer.write("\"allKnownCommunities\":"
-				+ visibility.isAllKnownCommunities() + ",");
-		writer.write("\"allKnownUsers\":" + visibility.isAllKnownUsers() + ",");
-		writer.write("\"allUsers\":" + visibility.isAllUsers() + ",");
-		writer.write("\"communityIds\":[");
-		if (visibility.getCommunityIds() != null) {
-			boolean isFirst = true;
-			for (Long i : visibility.getCommunityIds()) {
-				if (!isFirst) {
-					writer.write(",");
-				}
-				writer.write(i.toString());
-				isFirst = false;
-			}
+		try {
+			StringWriter writer = new StringWriter();
+			writer.write("{");
+			writer.write(JSONObject.quote("allCommunities") + ":"
+					+ JsonUtils.toJson(visibility.isAllCommunities()) + ",");
+			writer.write(JSONObject.quote("allKnownCommunities") + ":"
+					+ JsonUtils.toJson(visibility.isAllKnownCommunities())
+					+ ",");
+			writer.write(JSONObject.quote("allKnownUsers") + ":"
+					+ JsonUtils.toJson(visibility.isAllKnownUsers()) + ",");
+			writer.write(JSONObject.quote("allUsers") + ":"
+					+ JsonUtils.toJson(visibility.isAllUsers()) + ",");
+			writer.write(JsonUtils.toJson("communityIds") + ":"
+					+ JsonUtils.toJson(visibility.getCommunityIds()) + ",");
+			writer.write(JsonUtils.toJson("groupIds") + ":"
+					+ JsonUtils.toJson(visibility.getGroupIds()) + ",");
+			writer.write(JsonUtils.toJson("userIds") + ":"
+					+ JsonUtils.toJson(visibility.getUserIds()));
+			writer.write("}");
+			return writer.toString();
+		} catch (NullPointerException e) {
+			return null;
 		}
-		writer.write("],");
-
-		writer.write("\"groupIds\":[");
-		if (visibility.getGroupIds() != null) {
-			boolean isFirst = true;
-			for (Long i : visibility.getGroupIds()) {
-				if (!isFirst) {
-					writer.write(",");
-				}
-				writer.write(i.toString());
-				isFirst = false;
-			}
-		}
-		writer.write("],");
-
-		writer.write("\"userIds\":[");
-		if (visibility.getUserIds() != null) {
-			boolean isFirst = true;
-			for (Long i : visibility.getUserIds()) {
-				if (!isFirst) {
-					writer.write(",");
-				}
-				writer.write(i.toString());
-				isFirst = false;
-			}
-		}
-		writer.write("]");
-		writer.write("}");
-
-		return writer.toString();
 	}
 }

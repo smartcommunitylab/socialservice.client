@@ -15,6 +15,7 @@
  ******************************************************************************/
 package eu.trentorise.smartcampus.socialservice.model;
 
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,10 +23,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import eu.trentorise.smartcampus.network.JsonUtils;
+
 /**
  * <i>Group</i> represents a social group
  * 
- * @author mirko
+ * @author mirko perillo
  * 
  */
 public class Group {
@@ -96,6 +99,24 @@ public class Group {
 			}
 			return listElements;
 		} catch (JSONException e) {
+			return null;
+		}
+	}
+
+	public static String toJson(Group g) {
+		try {
+			StringWriter writer = new StringWriter();
+			writer.write("{");
+			writer.write(JSONObject.quote("name") + ":"
+					+ JsonUtils.toJson(g.getName()) + ",");
+			writer.write(JSONObject.quote("socialId") + ":"
+					+ JsonUtils.toJson(g.getSocialId()) + ",");
+
+			writer.write(JSONObject.quote("users") + ":"
+					+ JsonUtils.toJson(g.getUsers()));
+			writer.write("}");
+			return writer.toString();
+		} catch (NullPointerException e) {
 			return null;
 		}
 	}

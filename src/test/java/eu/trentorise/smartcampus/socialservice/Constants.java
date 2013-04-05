@@ -23,5 +23,6 @@ public class Constants {
 
 	static final String AUTH_TOKEN = "";
 	static final long CREATOR_ID = -1l;
+	static final String SC_COMMUNITY_ID = "282";
 
 }

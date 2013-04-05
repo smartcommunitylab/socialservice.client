@@ -15,8 +15,12 @@
  ******************************************************************************/
 package eu.trentorise.smartcampus.socialservice.model;
 
+import java.io.StringWriter;
+
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import eu.trentorise.smartcampus.network.JsonUtils;
 
 /**
  * <i>UserInformation</i> describes other informations of a user
@@ -54,6 +58,20 @@ public class UserInformation {
 		} catch (JSONException e) {
 			return null;
 		}
+	}
 
+	public static String toJson(UserInformation u) {
+		try {
+			StringWriter writer = new StringWriter();
+			writer.write("{");
+			writer.write(JSONObject.quote("faculty") + ":"
+					+ JsonUtils.toJson(u.getFaculty()) + ",");
+			writer.write(JSONObject.quote("position") + ":"
+					+ JsonUtils.toJson(u.getPosition()));
+			writer.write("}");
+			return writer.toString();
+		} catch (NullPointerException e) {
+			return null;
+		}
 	}
 }

@@ -15,12 +15,15 @@
  ******************************************************************************/
 package eu.trentorise.smartcampus.socialservice.model;
 
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import eu.trentorise.smartcampus.network.JsonUtils;
 
 /**
  * <i>Community</i> represents a social community
@@ -115,6 +118,26 @@ public class Community {
 			}
 			return listElements;
 		} catch (JSONException e) {
+			return null;
+		}
+	}
+
+	public static String toJson(Community c) {
+		try {
+			StringWriter writer = new StringWriter();
+			writer.write("{");
+			writer.write(JSONObject.quote("name") + ":"
+					+ JsonUtils.toJson(c.getName()) + ",");
+			writer.write(JSONObject.quote("description") + ":"
+					+ JsonUtils.toJson(c.getDescription()) + ",");
+
+			writer.write(JSONObject.quote("tags") + ":"
+					+ JsonUtils.toJson(c.getTags()) + ",");
+			writer.write(JSONObject.quote("socialId") + ":"
+					+ JsonUtils.toJson(c.getSocialId()));
+			writer.write("}");
+			return writer.toString();
+		} catch (NullPointerException e) {
 			return null;
 		}
 	}

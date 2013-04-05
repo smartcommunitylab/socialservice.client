@@ -23,6 +23,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import eu.trentorise.smartcampus.network.JsonUtils;
+
 /**
  * <i>Entity</i> represents an entity in the system. Every object present in the
  * system is an entity: a portfolio, a event, a story and so on.
@@ -162,46 +164,30 @@ public class Entity {
 	}
 
 	public static String toJson(Entity e) {
-		StringWriter writer = new StringWriter();
-		writer.write("{");
-		writer.write("\"id\":" + e.getId() + ",");
-		writer.write("\"name\":"
-				+ JSONObject.quote((e.getName() != null ? e.getName() : ""))
-				+ ",");
-		writer.write("\"description\":"
-				+ JSONObject.quote((e.getDescription() != null ? e
-						.getDescription() : "")) + ",");
-		writer.write("\"creatorId\":" + e.getCreatorId() + ",");
-		writer.write("\"type\":"
-				+ JSONObject.quote((e.getType() != null ? e.getType() : ""))
-				+ ",");
-		writer.write("\"typeId\":" + e.getTypeId() + ",");
-		writer.write("\"relations\":[");
-		if (e.getRelations() != null) {
-			boolean isFirst = true;
-			for (Long i : e.getRelations()) {
-				if (!isFirst) {
-					writer.write(",");
-				}
-				writer.write(i.toString());
-				isFirst = false;
-			}
+		try {
+			StringWriter writer = new StringWriter();
+			writer.write("{");
+			writer.write(JSONObject.quote("id") + ":"
+					+ JsonUtils.toJson(e.getId()) + ",");
+			writer.write(JSONObject.quote("name") + ":"
+					+ JsonUtils.toJson(e.getName()) + ",");
+			writer.write(JSONObject.quote("description") + ":"
+					+ JsonUtils.toJson(e.getDescription()) + ",");
+			writer.write(JSONObject.quote("creatorId") + ":"
+					+ JsonUtils.toJson(e.getCreatorId()) + ",");
+			writer.write(JSONObject.quote("type") + ":"
+					+ JsonUtils.toJson(e.getType()) + ",");
+			writer.write(JSONObject.quote("typeId") + ":"
+					+ JsonUtils.toJson(e.getTypeId()) + ",");
+			writer.write(JSONObject.quote("relations") + ":"
+					+ JsonUtils.toJson(e.getRelations()) + ",");
+			writer.write(JSONObject.quote("tags") + ":"
+					+ JsonUtils.toJson(e.getTags()));
+			writer.write("}");
+			return writer.toString();
+		} catch (NullPointerException npe) {
+			return null;
 		}
-		writer.write("],");
-		writer.write("\"tags\":[");
-		if (e.getTags() != null) {
-			boolean isFirst = true;
-			for (Concept c : e.getTags()) {
-				if (!isFirst) {
-					writer.write(",");
-				}
-				writer.write(Concept.toJson(c));
-				isFirst = false;
-			}
-		}
-		writer.write("]");
-		writer.write("}");
-		return writer.toString();
 	}
 
 	public long getTypeId() {

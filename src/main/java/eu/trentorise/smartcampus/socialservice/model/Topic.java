@@ -15,12 +15,15 @@
  ******************************************************************************/
 package eu.trentorise.smartcampus.socialservice.model;
 
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import eu.trentorise.smartcampus.network.JsonUtils;
 
 /**
  * <i>Topic</i> represents an argument of interest that a user follows from some
@@ -30,6 +33,21 @@ import org.json.JSONObject;
  * 
  */
 public class Topic {
+
+	public static enum TopicStatus {
+		ACTIVE(1), SUSPENDED(2);
+
+		private int value;
+
+		private TopicStatus(int value) {
+			this.value = value;
+		}
+
+		public int getValue() {
+			return value;
+		}
+	}
+
 	/**
 	 * id of the topic
 	 */
@@ -264,4 +282,38 @@ public class Topic {
 			return null;
 		}
 	}
+
+	public static String toJson(Topic t) {
+		try {
+			StringWriter writer = new StringWriter();
+			writer.write("{");
+			writer.write(JSONObject.quote("communities") + ":"
+					+ JsonUtils.toJson(t.getCommunities()) + ",");
+			writer.write(JSONObject.quote("concepts") + ":"
+					+ JsonUtils.toJson(t.getConcepts()) + ",");
+			writer.write(JSONObject.quote("contentTypes") + ":"
+					+ JsonUtils.toJson(t.getContentTypes()) + ",");
+			writer.write(JSONObject.quote("entities") + ":"
+					+ JsonUtils.toJson(t.getEntities()) + ",");
+			writer.write(JSONObject.quote("groups") + ":"
+					+ JsonUtils.toJson(t.getGroups()) + ",");
+			writer.write(JSONObject.quote("id") + ":"
+					+ JsonUtils.toJson(t.getId()) + ",");
+			writer.write(JSONObject.quote("keywords") + ":"
+					+ JsonUtils.toJson(t.getKeywords()) + ",");
+			writer.write(JSONObject.quote("name") + ":"
+					+ JsonUtils.toJson(t.getName()) + ",");
+			writer.write(JSONObject.quote("socialId") + ":"
+					+ JsonUtils.toJson(t.getSocialId()) + ",");
+			writer.write(JSONObject.quote("status") + ":"
+					+ JsonUtils.toJson(t.getStatus()) + ",");
+			writer.write(JSONObject.quote("users") + ":"
+					+ JsonUtils.toJson(t.getUsers()));
+			writer.write("}");
+			return writer.toString();
+		} catch (NullPointerException e) {
+			return null;
+		}
+	}
+
 }

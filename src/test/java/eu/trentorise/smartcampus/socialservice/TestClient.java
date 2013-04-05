@@ -26,9 +26,12 @@ import org.junit.Test;
 import eu.trentorise.smartcampus.socialservice.model.Concept;
 import eu.trentorise.smartcampus.socialservice.model.Entity;
 import eu.trentorise.smartcampus.socialservice.model.EntityType;
+import eu.trentorise.smartcampus.socialservice.model.Group;
 import eu.trentorise.smartcampus.socialservice.model.ShareOperation;
 import eu.trentorise.smartcampus.socialservice.model.ShareVisibility;
 import eu.trentorise.smartcampus.socialservice.model.SharedContent;
+import eu.trentorise.smartcampus.socialservice.model.Topic;
+import eu.trentorise.smartcampus.socialservice.model.Topic.TopicStatus;
 
 public class TestClient {
 
@@ -41,17 +44,70 @@ public class TestClient {
 
 	@Test
 	public void groups() throws SecurityException, SocialServiceException {
-		Assert.assertNotNull(socialService.getGroups(Constants.AUTH_TOKEN));
+		// get groups
+		int size = socialService.getGroups(Constants.AUTH_TOKEN).size();
+
+		// create group
+		Group g = socialService.createGroup(Constants.AUTH_TOKEN,
+				"example group");
+		Assert.assertNotNull(g);
+		Assert.assertEquals(size + 1,
+				socialService.getGroups(Constants.AUTH_TOKEN).size());
+
+		// update group
+		String modName = "group MOD";
+		g.setName(modName);
+		Assert.assertTrue(socialService.updateGroup(Constants.AUTH_TOKEN, g));
+		g = socialService.getGroup(g.getId(), Constants.AUTH_TOKEN);
+		Assert.assertEquals(modName, g.getName());
+		// delete group
+		Assert.assertTrue(socialService.deleteGroup(Constants.AUTH_TOKEN,
+				g.getId()));
 	}
 
 	@Test
 	public void communities() throws SecurityException, SocialServiceException {
+		// get communities
 		Assert.assertNotNull(socialService.getCommunities(Constants.AUTH_TOKEN));
+
+		// add user to community
+		Assert.assertTrue(socialService.addUserToCommunity(
+				Constants.AUTH_TOKEN, Constants.SC_COMMUNITY_ID));
+
+		// remove user from community
+		Assert.assertTrue(socialService.removeUserFromCommunity(
+				Constants.AUTH_TOKEN, Constants.SC_COMMUNITY_ID));
 	}
 
 	@Test
 	public void topics() throws SecurityException, SocialServiceException {
+		// get topics
 		Assert.assertNotNull(socialService.getTopics(Constants.AUTH_TOKEN));
+
+		// create topic
+		Topic t = new Topic();
+		t.setAllCommunities(true);
+		t.setName("test topic");
+		t.setStatus(TopicStatus.ACTIVE.getValue());
+		t = socialService.createTopic(Constants.AUTH_TOKEN, t);
+		Assert.assertTrue(Long.valueOf(t.getId()) > 0);
+
+		// update topic
+		t.setName("topic MOD");
+		Assert.assertTrue(socialService.updateTopic(Constants.AUTH_TOKEN, t));
+		t = socialService.getTopic(Constants.AUTH_TOKEN, t.getId());
+		Assert.assertEquals("topic MOD", t.getName());
+
+		// change status
+		Assert.assertEquals(TopicStatus.ACTIVE.getValue(), t.getStatus());
+		Assert.assertTrue(socialService.changeTopicStatus(Constants.AUTH_TOKEN,
+				t.getId(), TopicStatus.SUSPENDED));
+		t = socialService.getTopic(Constants.AUTH_TOKEN, t.getId());
+		Assert.assertEquals(TopicStatus.SUSPENDED.getValue(), t.getStatus());
+
+		// delete topic
+		Assert.assertTrue(socialService.deleteTopic(Constants.AUTH_TOKEN,
+				t.getId()));
 	}
 
 	@Test

@@ -24,6 +24,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import eu.trentorise.smartcampus.network.JsonUtils;
+
 /**
  * <i>Concept</i> represents a semantic tag
  * 
@@ -109,19 +111,23 @@ public class Concept {
 	}
 
 	public static String toJson(Concept c) {
-		StringWriter writer = new StringWriter();
-		writer.write("{");
-		writer.write("\"id\":" + c.getId() + ",");
-		writer.write("\"description\":"
-				+ JSONObject.quote((c.getDescription() != null ? c
-						.getDescription() : "")) + ",");
-		writer.write("\"name\":"
-				+ JSONObject.quote((c.getName() != null ? c.getName() : ""))
-				+ ",");
-		writer.write("\"summary\":"
-				+ JSONObject.quote((c.getSummary() != null ? c.getSummary()
-						: "")));
-		writer.write("}");
-		return writer.toString();
+		try {
+			StringWriter writer = new StringWriter();
+			writer.write("{");
+			writer.write(JSONObject.quote("id") + ":"
+					+ JsonUtils.toJson(c.getId()) + ",");
+			writer.write(JSONObject.quote("description")
+					+ ":"
+					+ JSONObject.quote((c.getDescription() != null ? c
+							.getDescription() : "")) + ",");
+			writer.write(JSONObject.quote("name") + ":"
+					+ JsonUtils.toJson(c.getName()) + ",");
+			writer.write(JSONObject.quote("summary") + ":"
+					+ JsonUtils.toJson(c.getSummary()));
+			writer.write("}");
+			return writer.toString();
+		} catch (NullPointerException e) {
+			return null;
+		}
 	}
 }

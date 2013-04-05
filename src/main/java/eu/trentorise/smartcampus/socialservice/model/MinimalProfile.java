@@ -15,12 +15,15 @@
  ******************************************************************************/
 package eu.trentorise.smartcampus.socialservice.model;
 
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import eu.trentorise.smartcampus.network.JsonUtils;
 
 /**
  * 
@@ -123,5 +126,35 @@ public class MinimalProfile extends SCUser {
 		} catch (JSONException e) {
 			return null;
 		}
+	}
+
+	public static String toJson(MinimalProfile m) {
+		try {
+			StringWriter writer = new StringWriter();
+			writer.write("{");
+			writer.write(JSONObject.quote("userId") + ":"
+					+ JsonUtils.toJson(m.getUserId()) + ",");
+			writer.write(JSONObject.quote("socialId") + ":"
+					+ JsonUtils.toJson(m.getSocialId()) + ",");
+			writer.write(JSONObject.quote("name")
+					+ ":"
+					+ JSONObject.quote((m.getName() != null ? m.getName() : ""))
+					+ ",");
+			writer.write(JSONObject.quote("surname")
+					+ ":"
+					+ JSONObject.quote((m.getSurname() != null ? m.getSurname()
+							: "")) + ",");
+			writer.write(JSONObject.quote("pictureUrl") + ":"
+					+ JsonUtils.toJson(m.getPictureUrl()) + ",");
+			writer.write(JSONObject.quote("known") + ":"
+					+ JsonUtils.toJson(m.isKnown()) + ",");
+			writer.write(JSONObject.quote("userInformation") + ":"
+					+ UserInformation.toJson(m.getUserInformation()));
+			writer.write("}");
+			return writer.toString();
+		} catch (NullPointerException e) {
+			return null;
+		}
+
 	}
 }
