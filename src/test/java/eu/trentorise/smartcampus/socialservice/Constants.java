@@ -24,5 +24,6 @@ public class Constants {
 	static final String AUTH_TOKEN = "";
 	static final long CREATOR_ID = -1l;
 	static final String SC_COMMUNITY_ID = "282";
+	static final String SERVICE_URL = "https://vas-dev.smartcampuslab.it";
 
 }

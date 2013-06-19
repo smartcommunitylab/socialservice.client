@@ -39,7 +39,7 @@ public class TestClient {
 
 	@Before
 	public void init() {
-		socialService = new SocialService("http://localhost:8080");
+		socialService = new SocialService(Constants.SERVICE_URL);
 	}
 
 	@Test
