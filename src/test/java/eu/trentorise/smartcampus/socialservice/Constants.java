@@ -21,9 +21,11 @@ package eu.trentorise.smartcampus.socialservice;
  */
 public class Constants {
 
-	static final String AUTH_TOKEN = "";
+	static final String USER_AUTH_TOKEN = "7a2443cb-7094-4b77-8e68-445ea12e1c05";
+	static final String CLIENT_AUTH_TOKEN = "5e601e28-f318-4fe5-80ee-d92e4382d33a";
 	static final long CREATOR_ID = -1l;
-	static final String SC_COMMUNITY_ID = "282";
-	static final String SERVICE_URL = "https://vas-dev.smartcampuslab.it";
+	static final String SC_COMMUNITY_ID = "Smartcampus";
+	public static final String OTHER_USER_SOCIAL_ID = "1306";
+	public static final String PRIVATE_COMMUNITY = "mycomm";
 
 }

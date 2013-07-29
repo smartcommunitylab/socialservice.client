@@ -15,23 +15,24 @@
  ******************************************************************************/
 package eu.trentorise.smartcampus.socialservice;
 
-import java.net.URLEncoder;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import eu.trentorise.smartcampus.network.RemoteConnector;
 import eu.trentorise.smartcampus.network.RemoteException;
-import eu.trentorise.smartcampus.socialservice.model.Community;
-import eu.trentorise.smartcampus.socialservice.model.Concept;
-import eu.trentorise.smartcampus.socialservice.model.Entity;
-import eu.trentorise.smartcampus.socialservice.model.EntityType;
-import eu.trentorise.smartcampus.socialservice.model.Group;
-import eu.trentorise.smartcampus.socialservice.model.ShareOperation;
-import eu.trentorise.smartcampus.socialservice.model.ShareVisibility;
-import eu.trentorise.smartcampus.socialservice.model.SharedContent;
-import eu.trentorise.smartcampus.socialservice.model.Topic;
-import eu.trentorise.smartcampus.socialservice.model.Topic.TopicStatus;
+import eu.trentorise.smartcampus.social.model.Communities;
+import eu.trentorise.smartcampus.social.model.Community;
+import eu.trentorise.smartcampus.social.model.Concepts;
+import eu.trentorise.smartcampus.social.model.Entities;
+import eu.trentorise.smartcampus.social.model.Entity;
+import eu.trentorise.smartcampus.social.model.EntityRequest;
+import eu.trentorise.smartcampus.social.model.EntityType;
+import eu.trentorise.smartcampus.social.model.EntityTypes;
+import eu.trentorise.smartcampus.social.model.Group;
+import eu.trentorise.smartcampus.social.model.Groups;
+import eu.trentorise.smartcampus.social.model.ShareVisibility;
 
 /**
  * Service APIs
@@ -41,66 +42,49 @@ import eu.trentorise.smartcampus.socialservice.model.Topic.TopicStatus;
  */
 public class SocialService {
 
-	/** Service path */
-	private static final String SERVICE = "/smartcampus.vas.community-manager.web/";
+	private static final String GROUP = "user/group/";
+	private static final String GROUP_MEMBERS = "/members/";
 
-	private static final String GROUP = "eu.trentorise.smartcampus.cm.model.Group/";
+	private static final String USER_COMMUNITY = "user/community/";
 
-	private static final String COMMUNITY = "eu.trentorise.smartcampus.cm.model.Community/";
+	private static final String COMMUNITY = "community/";
+	private static final String COMMUNITY_BY_SOCIAL = "community/social/";
+	
+	private static final String USER_CONTENTS = "user/entities/";
 
-	private static final String ADD_TO_COMMUNITY = "addtocommunity/";
+	private static final String COMMUNITY_CONTENTS = "/entities/";
 
-	private static final String REMOVE_FROM_COMMUNITY = "removefromcommunity/";
+	private static final String USER_SHARED = "user/shared/";
 
-	private static final String TOPIC = "eu.trentorise.smartcampus.cm.model.Topic/";
+	private static final String COMMUNITY_SHARED = "/shared/";
 
-	private static final String CHANGE_TOPIC_STATUS = "changestatus/";
-
-	private static final String VISIBILITY = "assignments/";
-
-	private static final String MY_CONTENTS = "content/";
-
-	private static final String SHARED_CONTENT = "sharedcontent/";
-
-	private static final String SHARE = "share/";
-
-	private static final String UNSHARE = "unshare/";
-
-	private static final String CREATE_ENTITY_TYPES = "entitytype/";
-
-	private static final String GET_ENTITY_TYPE_BY_ID = "entitytype-by-id/";
-
-	private static final String GET_ENTITY_TYPE_BY_CONCEPT_ID = "entitytype-by-conceptid/";
-
-	private static final String GET_ENTITY_TYPE_BY_PREFIX = "entitytype-by-prefix/";
-
-	private static final String GET_CONCEPTS = "suggestion/";
-
-	private static final String ENTITY = "entity/";
+	private static final String TYPES = "type/";
+	private static final String TYPES_BY_CONCEPT = "type/concept/";
+	private static final String CONCEPTS = "concept/";
 
 	private String serviceUrl;
 
-	private final static String ENCODE_FORMAT = "utf8";
-
 	public SocialService(String serviceUrl) {
 		this.serviceUrl = serviceUrl;
+		if (!serviceUrl.endsWith("/")) {
+			this.serviceUrl += '/';
+		}
 	}
 
 	/**
 	 * retrieves all user groups
 	 * 
 	 * @param token
-	 *            authentication token
+	 *            user access token
 	 * @return the list of user groups, or a empty list
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public List<Group> getGroups(String token) throws SecurityException,
+	public Groups getUserGroups(String token) throws SecurityException,
 			SocialServiceException {
 		try {
-			String json = RemoteConnector.getJSON(serviceUrl, SERVICE + GROUP,
-					token, null);
-			return Group.toList(json);
+			String json = RemoteConnector.getJSON(serviceUrl, GROUP, token, null);
+			return Groups.toObject(json);
 		} catch (RemoteException e) {
 			throw new SocialServiceException(e);
 		}
@@ -110,19 +94,18 @@ public class SocialService {
 	 * Creates a group for authenticated user
 	 * 
 	 * @param token
-	 *            authentication token
+	 *            user access token
 	 * @param name
 	 *            name of the new group
 	 * @return group created
 	 * @throws SocialServiceException
 	 */
-	public Group createGroup(String token, String name)
+	public Group createUserGroup(String token, String name)
 			throws SocialServiceException {
 		try {
 			Group group = new Group();
 			group.setName(name);
-			String json = RemoteConnector.postJSON(serviceUrl, SERVICE + GROUP,
-					Group.toJson(group), token);
+			String json = RemoteConnector.postJSON(serviceUrl, GROUP, Group.toJson(group), token);
 			return Group.toObject(json);
 		} catch (Exception e) {
 			throw new SocialServiceException(e);
@@ -133,17 +116,17 @@ public class SocialService {
 	 * Updates a group
 	 * 
 	 * @param token
-	 *            authentication token
+	 *            user access token
 	 * @param group
 	 *            new group data
 	 * @return true if operation gone fine, false otherwise
 	 * @throws SocialServiceException
 	 */
-	public boolean updateGroup(String token, Group group)
+	public boolean updateUserGroup(String token, Group group)
 			throws SocialServiceException {
 		try {
-			String json = RemoteConnector.putJSON(serviceUrl, SERVICE + GROUP
-					+ group.getId(), Group.toJson(group), token);
+			String json = RemoteConnector.putJSON(serviceUrl, GROUP
+					+ group.getSocialId(), Group.toJson(group), token);
 			return new Boolean(json);
 		} catch (Exception e) {
 			throw new SocialServiceException(e);
@@ -154,17 +137,16 @@ public class SocialService {
 	 * Removes a group of authenticated user
 	 * 
 	 * @param token
-	 *            authentication token
+	 *            user access token
 	 * @param groupId
 	 *            id of the group to delete
 	 * @return true if operation gone fine, false otherwise
 	 * @throws SocialServiceException
 	 */
-	public boolean deleteGroup(String token, String groupId)
+	public boolean deleteUserGroup(String token, String groupId)
 			throws SocialServiceException {
 		try {
-			String json = RemoteConnector.deleteJSON(serviceUrl, SERVICE
-					+ GROUP + groupId, token);
+			String json = RemoteConnector.deleteJSON(serviceUrl, GROUP + groupId, token);
 			return new Boolean(json);
 		} catch (Exception e) {
 			throw new SocialServiceException(e);
@@ -177,21 +159,57 @@ public class SocialService {
 	 * @param groupId
 	 *            id of the group
 	 * @param token
-	 *            authentication token
+	 *            user access token
 	 * @return group informations
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public Group getGroup(String groupId, String token)
+	public Group getUserGroup(String groupId, String token)
 			throws SecurityException, SocialServiceException {
 		try {
-			String json = RemoteConnector.getJSON(serviceUrl, SERVICE + GROUP
-					+ groupId, token, null);
+			String json = RemoteConnector.getJSON(serviceUrl, GROUP + groupId, token, null);
 			return Group.toObject(json);
 		} catch (RemoteException e) {
 			throw new SocialServiceException(e);
-
 		}
+	}
+
+	/**
+	 * Add the specified users to a group
+	 * @param groupId id of the group
+	 * @param userIds ids of the users to add
+	 * @param token user access token
+	 * @return true if the operation succeeded 
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public boolean addUsersToGroup(String groupId, List<String> userIds, String token) throws SecurityException, SocialServiceException {
+		try {
+			String json = RemoteConnector.putJSON(serviceUrl, GROUP + groupId+GROUP_MEMBERS, null, token, Collections.<String,Object>singletonMap("userIds", userIds));
+			return new Boolean(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
+		
+	}
+
+	/**
+	 * Remove the specified users from a group
+	 * @param groupId id of the group
+	 * @param userIds ids of the users to remove
+	 * @param token user access token
+	 * @return true if the operation succeeded 
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public boolean removeUsersFromGroup(String groupId, List<String> userIds, String token) throws SecurityException, SocialServiceException {
+		try {
+			String json = RemoteConnector.deleteJSON(serviceUrl, GROUP + groupId+GROUP_MEMBERS, token, Collections.<String,Object>singletonMap("userIds", userIds));
+			return new Boolean(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
+		
 	}
 
 	/**
@@ -200,16 +218,34 @@ public class SocialService {
 	 * @param communityId
 	 *            community id
 	 * @param token
-	 *            authentication token
+	 *            user or client access token
 	 * @return community information
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public Community getCommunity(String communityId, String token)
-			throws SecurityException, SocialServiceException {
+	public Community getCommunity(String communityId, String token) throws SecurityException, SocialServiceException {
 		try {
-			String json = RemoteConnector.getJSON(serviceUrl, SERVICE
-					+ COMMUNITY + communityId, token, null);
+			String json = RemoteConnector.getJSON(serviceUrl, COMMUNITY + communityId, token, null);
+			return Community.toObject(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * retrieves informations about a specific community using its social ID
+	 * 
+	 * @param socialId
+	 *            community social id
+	 * @param token
+	 *            user or client access token
+	 * @return community information
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public Community getCommunityBySocialId(String socialId, String token) throws SecurityException, SocialServiceException {
+		try {
+			String json = RemoteConnector.getJSON(serviceUrl, COMMUNITY_BY_SOCIAL + socialId, token, null);
 			return Community.toObject(json);
 		} catch (RemoteException e) {
 			throw new SocialServiceException(e);
@@ -220,17 +256,35 @@ public class SocialService {
 	 * retrieves all communities which user belongs to
 	 * 
 	 * @param token
-	 *            authentication token
-	 * @return the list of communities
+	 *            user access token
+	 * @return the {@link Communities} object
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public List<Community> getCommunities(String token)
+	public Communities getUserCommunities(String token)
 			throws SecurityException, SocialServiceException {
 		try {
-			String json = RemoteConnector.getJSON(serviceUrl, SERVICE
-					+ COMMUNITY, token, null);
-			return Community.toList(json);
+			String json = RemoteConnector.getJSON(serviceUrl, USER_COMMUNITY, token, null);
+			return Communities.toObject(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * retrieves all communities of the platform
+	 * 
+	 * @param token
+	 *            user or client access token
+	 * @return the {@link Communities} object
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public Communities getCommunities(String token)
+			throws SecurityException, SocialServiceException {
+		try {
+			String json = RemoteConnector.getJSON(serviceUrl, COMMUNITY, token, null);
+			return Communities.toObject(json);
 		} catch (RemoteException e) {
 			throw new SocialServiceException(e);
 		}
@@ -240,17 +294,16 @@ public class SocialService {
 	 * Adds authenticated user to the given community
 	 * 
 	 * @param token
-	 *            authentication token
+	 *            user access token
 	 * @param communityId
 	 *            id of community which add user to
 	 * @return true if operation gone fine, false otherwise
 	 * @throws SocialServiceException
 	 */
 	public boolean addUserToCommunity(String token, String communityId)
-			throws SocialServiceException {
+			throws SocialServiceException, SecurityException {
 		try {
-			String json = RemoteConnector.putJSON(serviceUrl, SERVICE
-					+ ADD_TO_COMMUNITY + communityId, null, token);
+			String json = RemoteConnector.putJSON(serviceUrl, USER_COMMUNITY + communityId, null, token);
 			return new Boolean(json);
 		} catch (RemoteException e) {
 			throw new SocialServiceException(e);
@@ -261,17 +314,16 @@ public class SocialService {
 	 * Removes authenticated user from the given community
 	 * 
 	 * @param token
-	 *            authentication token
+	 *            user access token
 	 * @param communityId
 	 *            id of community which remove user from
 	 * @return true if operation gone fine, false otherwise
 	 * @throws SocialServiceException
 	 */
 	public boolean removeUserFromCommunity(String token, String communityId)
-			throws SocialServiceException {
+			throws SocialServiceException, SecurityException {
 		try {
-			String json = RemoteConnector.putJSON(serviceUrl, SERVICE
-					+ REMOVE_FROM_COMMUNITY + communityId, token);
+			String json = RemoteConnector.deleteJSON(serviceUrl, USER_COMMUNITY + communityId, token);
 			return new Boolean(json);
 		} catch (RemoteException e) {
 			throw new SocialServiceException(e);
@@ -279,151 +331,432 @@ public class SocialService {
 	}
 
 	/**
-	 * retrieves all the topic created by the user
+	 * Create a new community data structure for the specified community id.
+	 * @param id community id registered by the client
+	 * @param community community data
+	 * @param token client access token
+	 * @return created {@link Community} instance
+	 * @throws SocialServiceException
+	 * @throws SecurityException
+	 */
+	public Community createCommunity(String id, Community community, String token) throws SocialServiceException, SecurityException {
+		try {
+			String json = RemoteConnector.putJSON(serviceUrl, COMMUNITY + id, Community.toJson(community), token);
+			return Community.toObject(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
+	}
+	
+	/**
+	 * Deletes community data structure for the specified community id.
+	 * @param id community id registered by the client
+	 * @param token client access token
+	 * @return true if the community has been deleted
+	 * @throws SocialServiceException
+	 * @throws SecurityException
+	 */
+	public boolean deleteCommunity(String id, String token) throws SocialServiceException, SecurityException {
+		try {
+			String json = RemoteConnector.deleteJSON(serviceUrl, COMMUNITY + id, token);
+			return new Boolean(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * retrieves the entities created by the user
 	 * 
 	 * @param token
-	 *            authentication token
-	 * @return the list of user topics
+	 *            user access token
+	 * @param position
+	 *            counter to buffering result, leave null to not use
+	 * @param size
+	 *            number of results to get, leave null to get all
+	 * @param type
+	 *            type of resources to get, leave null to get all the types
+	 * @return the {@link Entities} object with list of resources created by the user
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public List<Topic> getTopics(String token) throws SecurityException,
+	public Entities getUserEntities(String token, Integer position, Integer size, String typeId) throws SecurityException,
 			SocialServiceException {
 		try {
-			String json = RemoteConnector.getJSON(serviceUrl, SERVICE + TOPIC,
-					token, null);
-			return Topic.toList(json);
+			Map<String, Object> parameters = new HashMap<String, Object>();
+			if (position == null) {
+				position = -1;
+			}
+			if (size == null) {
+				size = -1;
+			}
+
+			parameters.put("position", position);
+			parameters.put("size", size);
+			parameters.put("type", typeId);
+			String json = RemoteConnector.getJSON(serviceUrl, USER_CONTENTS, token, parameters);
+			return Entities.toObject(json);
 		} catch (RemoteException e) {
 			throw new SocialServiceException(e);
 		}
 	}
 
 	/**
-	 * retrieves information about a specific topic
+	 * retrieves the entity created by the user
 	 * 
 	 * @param token
-	 *            authentication token
-	 * @param topicId
-	 *            the id of the topic
-	 * @return topic informations
+	 *            user access token
+	 * @param entityId
+	 *            entity ID
+	 * @return the {@link Entity} object 
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public Topic getTopic(String token, String topicId)
+	public Entity getUserEntity(String token, String entityId) throws SecurityException,
+			SocialServiceException {
+		try {
+			String json = RemoteConnector.getJSON(serviceUrl, USER_CONTENTS+entityId, token);
+			return Entity.toObject(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
+	}
+	
+	/**
+	 * creates a user entity
+	 * 
+	 * @param token
+	 *            user access token
+	 * @param entity
+	 *            entity to create
+	 * @return {@link Entity}  object representing entity created
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public Entity createUserEntity(String token, EntityRequest entity)
 			throws SecurityException, SocialServiceException {
 		try {
-			String json = RemoteConnector.getJSON(serviceUrl, SERVICE + TOPIC
-					+ topicId, token, null);
-			return Topic.toObject(json);
-		} catch (RemoteException e) {
+			String json = RemoteConnector.postJSON(serviceUrl, USER_CONTENTS, EntityRequest.toJson(entity), token);
+			return Entity.toObject(json);
+		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
 	}
 
 	/**
-	 * Creates a topic for the authenticated user
+	 * deletes a user entity
 	 * 
 	 * @param token
-	 *            authentication token
-	 * @param topic
-	 *            topic to create
-	 * @return the topic created with populated id field
-	 * @throws SocialServiceException
-	 */
-	public Topic createTopic(String token, Topic topic)
-			throws SocialServiceException {
-		try {
-			String json = RemoteConnector.postJSON(serviceUrl, SERVICE + TOPIC,
-					Topic.toJson(topic), token);
-			return Topic.toObject(json);
-		} catch (RemoteException e) {
-			throw new SocialServiceException(e);
-		}
-	}
-
-	/**
-	 * Deletes a topic of the authenticated user
-	 * 
-	 * @param token
-	 *            authentication token
-	 * @param topicId
-	 *            id of the topic to delete
+	 *            user access token
+	 * @param entityId
+	 *            id of the entity to delete
 	 * @return true if operation gone fine, false otherwise
+	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public boolean deleteTopic(String token, String topicId)
-			throws SocialServiceException {
+	public boolean deleteUserEntity(String token, String entityId)
+			throws SecurityException, SocialServiceException {
 		try {
-			String json = RemoteConnector.deleteJSON(serviceUrl, SERVICE
-					+ TOPIC + topicId, token);
+			String json = RemoteConnector.deleteJSON(serviceUrl, USER_CONTENTS + entityId, token);
 			return new Boolean(json);
-		} catch (RemoteException e) {
+		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
 	}
 
 	/**
-	 * Updates a topic of the authenticated user
+	 * updates a user entity
 	 * 
 	 * @param token
-	 *            authentication token
-	 * @param topic
-	 *            topic to update
+	 *            user access token
+	 * @param entity
+	 *            entity to update
 	 * @return true if operation gone fine, false otherwise
+	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public boolean updateTopic(String token, Topic topic)
-			throws SocialServiceException {
+	public boolean updateUserEntity(String token, EntityRequest entity)
+			throws SecurityException, SocialServiceException {
 		try {
-			String json = RemoteConnector.putJSON(serviceUrl, SERVICE + TOPIC
-					+ topic.getId(), Topic.toJson(topic), token);
+			String json = RemoteConnector.putJSON(serviceUrl, USER_CONTENTS+entity.getId(), EntityRequest.toJson(entity), token);
 			return new Boolean(json);
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * retrieves the entities created by the community
+	 * 
+	 * @param communityId
+	 * 			  community ID	
+	 * @param token
+	 *            client access token
+	 * @param position
+	 *            counter to buffering result, leave null to not use
+	 * @param size
+	 *            number of results to get, leave null to get all
+	 * @param type
+	 *            type of resources to get, leave null to get all the types
+	 * @return the {@link Entities} object with list of resources created by the community
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public Entities getCommunityEntities(String communityId, String token, Integer position, Integer size, String typeId) throws SecurityException,
+			SocialServiceException {
+		try {
+			Map<String, Object> parameters = new HashMap<String, Object>();
+			if (position == null) {
+				position = -1;
+			}
+			if (size == null) {
+				size = -1;
+			}
+
+			parameters.put("position", position);
+			parameters.put("size", size);
+			parameters.put("type", typeId);
+			String json = RemoteConnector.getJSON(serviceUrl, COMMUNITY+communityId+COMMUNITY_CONTENTS, token, parameters);
+			return Entities.toObject(json);
 		} catch (RemoteException e) {
 			throw new SocialServiceException(e);
 		}
 	}
 
 	/**
-	 * Changes the status of a topic of authenticated user
+	 * retrieves the entity created by the community
 	 * 
+	 * @param communityId
+	 * 			  community ID	
 	 * @param token
-	 *            authentication token
-	 * @param topicId
-	 *            id of the topic
-	 * @param topicStatus
-	 *            new status
+	 *            client access token
+	 * @param entityId
+	 *            entity ID
+	 * @return the {@link Entity} object 
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public Entity getCommunityEntity(String communityId, String token, String entityId) throws SecurityException,
+			SocialServiceException {
+		try {
+			String json = RemoteConnector.getJSON(serviceUrl, COMMUNITY+communityId+COMMUNITY_CONTENTS+entityId, token);
+			return Entity.toObject(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
+	}
+	
+	/**
+	 * creates a community entity
+	 * 
+	 * @param communityId
+	 * 			  community ID	
+	 * @param token
+	 *            client access token
+	 * @param entity
+	 *            entity to create
+	 * @return {@link Entity}  object representing entity created
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public Entity createCommunityEntity(String communityId, String token, EntityRequest entity)
+			throws SecurityException, SocialServiceException {
+		try {
+			String json = RemoteConnector.postJSON(serviceUrl, COMMUNITY+communityId+COMMUNITY_CONTENTS, EntityRequest.toJson(entity), token);
+			return Entity.toObject(json);
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * deletes a community entity
+	 * 
+	 * @param communityId
+	 * 			  community ID	
+	 * @param token
+	 *            client access token
+	 * @param entityId
+	 *            id of the entity to delete
 	 * @return true if operation gone fine, false otherwise
+	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public boolean changeTopicStatus(String token, String topicId,
-			TopicStatus topicStatus) throws SocialServiceException {
+	public boolean deleteCommunityEntity(String communityId ,String token, String entityId)
+			throws SecurityException, SocialServiceException {
 		try {
-			String json = RemoteConnector.putJSON(
-					serviceUrl,
-					SERVICE + CHANGE_TOPIC_STATUS + topicId + "/"
-							+ topicStatus.getValue(), token);
+			String json = RemoteConnector.deleteJSON(serviceUrl, COMMUNITY+communityId+COMMUNITY_CONTENTS + entityId, token);
 			return new Boolean(json);
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * updates a community entity
+	 * 
+	 * @param communityId
+	 * 			  community ID	
+	 * @param token
+	 *            client access token
+	 * @param entity
+	 *            entity to update
+	 * @return true if operation gone fine, false otherwise
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public boolean updateCommunityEntity(String communityId, String token, EntityRequest entity)
+			throws SecurityException, SocialServiceException {
+		try {
+			String json = RemoteConnector.putJSON(serviceUrl, COMMUNITY+communityId+COMMUNITY_CONTENTS+entity.getId(), EntityRequest.toJson(entity), token);
+			return new Boolean(json);
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	
+	
+	/**
+	 * retrieves the entities shared with the user
+	 * 
+	 * @param token
+	 *            user access token
+	 * @param shareVisibility
+	 * 			{@link ShareVisibility} object defining the visibility filter
+	 * @param position
+	 *            counter to buffering result, leave null to not use
+	 * @param size
+	 *            number of results to get, leave null to get all
+	 * @param type
+	 *            type of resources to get, leave null to get all the types
+	 * @return the {@link Entities} object with list of resources shared with the user
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public Entities getEntitiesSharedWithUser(String token, ShareVisibility shareVisibility, Integer position, Integer size, String typeId) throws SecurityException,
+			SocialServiceException {
+		try {
+			Map<String, Object> parameters = new HashMap<String, Object>();
+			if (position == null) {
+				position = -1;
+			}
+			if (size == null) {
+				size = -1;
+			}
+
+			parameters.put("position", position);
+			parameters.put("size", size);
+			parameters.put("type", typeId);
+			String json = RemoteConnector.postJSON(serviceUrl, USER_SHARED, ShareVisibility.toJson(shareVisibility), token, parameters);
+			return Entities.toObject(json);
 		} catch (RemoteException e) {
 			throw new SocialServiceException(e);
 		}
 	}
 
 	/**
-	 * shares a resource with some visibility options
+	 * retrieves the entity shared with the user
 	 * 
 	 * @param token
-	 *            authentication token
-	 * @param shareOperation
+	 *            user access token
+	 * @param entityId
+	 *            entity ID
+	 * @return the {@link Entity} object 
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public Entity getEntitySharedWithUser(String token, String entityId) throws SecurityException,
+			SocialServiceException {
+		try {
+			String json = RemoteConnector.getJSON(serviceUrl, USER_SHARED+entityId, token);
+			return Entity.toObject(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	
+	/**
+	 * retrieves the entities shared with the community
+	 * 
+	 * @param communityId
+	 * 			  community ID	
+	 * @param token
+	 *            client access token
+	 * @param shareVisibility
+	 * 			{@link ShareVisibility} object defining the visibility filter
+	 * @param position
+	 *            counter to buffering result, leave null to not use
+	 * @param size
+	 *            number of results to get, leave null to get all
+	 * @param type
+	 *            type of resources to get, leave null to get all the types
+	 * @return the {@link Entities} object with list of resources shared with the community
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public Entities getEntitiesSharedWithCommunity(String communityId, String token, ShareVisibility shareVisibility, Integer position, Integer size, String typeId) throws SecurityException,
+			SocialServiceException {
+		try {
+			Map<String, Object> parameters = new HashMap<String, Object>();
+			if (position == null) {
+				position = -1;
+			}
+			if (size == null) {
+				size = -1;
+			}
+
+			parameters.put("position", position);
+			parameters.put("size", size);
+			parameters.put("type", typeId);
+			String json = RemoteConnector.postJSON(serviceUrl, COMMUNITY+communityId+COMMUNITY_SHARED, ShareVisibility.toJson(shareVisibility), token, parameters);
+			return Entities.toObject(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * retrieves the entity shared with the community
+	 * 
+	 * @param communityId
+	 * 			  community ID	
+	 * @param token
+	 *            client access token
+	 * @param entityId
+	 *            entity ID
+	 * @return the {@link Entity} object 
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public Entity getEntitySharedWithCommunity(String communityId, String token, String entityId) throws SecurityException,
+			SocialServiceException {
+		try {
+			String json = RemoteConnector.getJSON(serviceUrl, COMMUNITY+communityId+COMMUNITY_CONTENTS+entityId, token);
+			return Entity.toObject(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * shares a user resource with some visibility options
+	 * 
+	 * @param token
+	 *            user access token
+	 * @param entityId
+	 * 			  entity ID
+	 * @param shareVisibility
 	 *            sharing informations
 	 * @return true if operation gone fine, false otherwise
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public boolean share(String token, ShareOperation shareOperation)
+	public boolean shareUserEntity(String token, String entityId, ShareVisibility shareVisibility)
 			throws SecurityException, SocialServiceException {
 		try {
-			String json = RemoteConnector.postJSON(serviceUrl, SERVICE + SHARE,
-					ShareOperation.toJson(shareOperation), token, null);
+			String json = RemoteConnector.putJSON(serviceUrl, USER_SHARED+entityId, ShareVisibility.toJson(shareVisibility), token, null);
 			return new Boolean(json);
 		} catch (RemoteException e) {
 			throw new SocialServiceException(e);
@@ -434,18 +767,17 @@ public class SocialService {
 	 * makes private a shared resource
 	 * 
 	 * @param token
-	 *            authentication token
+	 *            access token
 	 * @param entityId
 	 *            id of the entity to make private
 	 * @return true if operation gone fine, false otherwise
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public boolean unshare(String token, long entityId)
+	public boolean unshareUserEntity(String token, String entityId)
 			throws SecurityException, SocialServiceException {
 		try {
-			String json = RemoteConnector.putJSON(serviceUrl, SERVICE + UNSHARE
-					+ entityId, "", token);
+			String json = RemoteConnector.deleteJSON(serviceUrl, USER_SHARED + entityId, token);
 			return new Boolean(json);
 		} catch (RemoteException e) {
 			throw new SocialServiceException(e);
@@ -453,125 +785,68 @@ public class SocialService {
 	}
 
 	/**
-	 * retrieves the resource shared with the user from some source defined in
-	 * ShareVisibility argument
+	 * shares a community resource with some visibility options
 	 * 
 	 * @param token
-	 *            authentication token
-	 * @param shareVisibility
-	 *            sources that shared resource with the user
-	 * @param position
-	 *            counter for buffering result, leave null to not use
-	 * 
-	 * @param size
-	 *            number of results to get, leave null to get all resource
-	 * @param type
-	 *            type of the resource to get, leave null to get all the types
-	 * @return the list of shared resources from given sources with the user
-	 * @throws SecurityException
-	 * @throws SocialServiceException
-	 */
-	public List<SharedContent> getSharedContents(String token,
-			ShareVisibility shareVisibility, Integer position, Integer size,
-			Long typeId) throws SecurityException, SocialServiceException {
-		try {
-			Map<String, Object> parameters = new HashMap<String, Object>();
-			if (position == null) {
-				position = -1;
-			}
-			if (size == null) {
-				size = -1;
-			}
-
-			parameters.put("position", position);
-			parameters.put("size", size);
-			parameters.put("type", typeId);
-			String json = RemoteConnector.postJSON(serviceUrl, SERVICE
-					+ SHARED_CONTENT, ShareVisibility.toJson(shareVisibility),
-					token, parameters);
-			return SharedContent.toList(json);
-		} catch (RemoteException e) {
-			throw new SocialServiceException(e);
-		}
-	}
-
-	/**
-	 * retrieves the resource created by the user
-	 * 
-	 * @param token
-	 *            authentication token
-	 * @param position
-	 *            counter to buffering result, leave null to not use
-	 * @param size
-	 *            number of results to get, leave null to get all
-	 * @param type
-	 *            type of resources to get, leave null to get all the types
-	 * @return the list of resources created by the user
-	 * @throws SecurityException
-	 * @throws SocialServiceException
-	 */
-	public List<SharedContent> getMyContents(String token, Integer position,
-			Integer size, Long typeId) throws SecurityException,
-			SocialServiceException {
-		try {
-			Map<String, Object> parameters = new HashMap<String, Object>();
-			if (position == null) {
-				position = -1;
-			}
-			if (size == null) {
-				size = -1;
-			}
-
-			parameters.put("position", position);
-			parameters.put("size", size);
-			parameters.put("type", typeId);
-			String json = RemoteConnector.getJSON(serviceUrl, SERVICE
-					+ MY_CONTENTS, token, parameters);
-			return SharedContent.toList(json);
-		} catch (RemoteException e) {
-			throw new SocialServiceException(e);
-		}
-	}
-
-	/**
-	 * retrieves visibility options of a resource
-	 * 
-	 * @param token
-	 *            authentication token
+	 *            client access token
+	 * @param communityId
+	 * 			  community ID
 	 * @param entityId
-	 *            id of the entity
-	 * @return the visibility options
+	 * 			  entity ID
+	 * @param shareVisibility
+	 *            sharing informations
+	 * @return true if operation gone fine, false otherwise
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public ShareVisibility getShareVisibility(String token, long entityId)
+	public boolean shareCommunityEntity(String communityId, String token, String entityId, ShareVisibility shareVisibility)
 			throws SecurityException, SocialServiceException {
 		try {
-			String json = RemoteConnector.getJSON(serviceUrl, SERVICE
-					+ VISIBILITY + entityId, token, null);
-			return ShareVisibility.toObject(json);
+			String json = RemoteConnector.putJSON(serviceUrl, COMMUNITY+communityId+COMMUNITY_SHARED+entityId, ShareVisibility.toJson(shareVisibility), token, null);
+			return new Boolean(json);
 		} catch (RemoteException e) {
 			throw new SocialServiceException(e);
 		}
+	}
 
+	/**
+	 * makes private a shared resource
+	 * 
+	 * @param token
+	 *            access token
+	 * @param communityId
+	 * 			  community ID
+	 * @param entityId
+	 *            id of the entity to make private
+	 * @return true if operation gone fine, false otherwise
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public boolean unshareCommnunityEntity(String communityId, String token, String entityId)
+			throws SecurityException, SocialServiceException {
+		try {
+			String json = RemoteConnector.deleteJSON(serviceUrl, COMMUNITY+communityId+COMMUNITY_SHARED+entityId, token);
+			return new Boolean(json);
+		} catch (RemoteException e) {
+			throw new SocialServiceException(e);
+		}
 	}
 
 	/**
 	 * creates a new entity type
 	 * 
 	 * @param token
-	 *            authentication token
+	 *            client or user access token
 	 * @param conceptId
 	 *            id of the concept relative to new entity type
 	 * @return the entity type created
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public EntityType createEntityType(String token, long conceptId)
+	public EntityType createEntityType(String token, String conceptId)
 			throws SecurityException, SocialServiceException {
 		try {
-			String json = RemoteConnector.postJSON(serviceUrl, SERVICE
-					+ CREATE_ENTITY_TYPES + conceptId, "", token, null);
+			String json = RemoteConnector.postJSON(serviceUrl, TYPES, "", token, Collections.<String,Object>singletonMap("conceptId", conceptId));
 			return EntityType.toObject(json);
 		} catch (RemoteException e) {
 			throw new SocialServiceException(e);
@@ -582,18 +857,17 @@ public class SocialService {
 	 * retrieves entity type by its id
 	 * 
 	 * @param token
-	 *            authentication token
+	 *            access token
 	 * @param entityTypeId
 	 *            entity type id
 	 * @return the entity type
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public EntityType getEntityTypeById(String token, long entityTypeId)
+	public EntityType getEntityTypeById(String token, String entityTypeId)
 			throws SecurityException, SocialServiceException {
 		try {
-			String json = RemoteConnector.getJSON(serviceUrl, SERVICE
-					+ GET_ENTITY_TYPE_BY_ID + entityTypeId, token, null);
+			String json = RemoteConnector.getJSON(serviceUrl, TYPES + entityTypeId, token, null);
 			return EntityType.toObject(json);
 		} catch (RemoteException e) {
 			throw new SocialServiceException(e);
@@ -604,18 +878,17 @@ public class SocialService {
 	 * retrieves entity type by related concept id
 	 * 
 	 * @param token
-	 *            authentication token
+	 *            access token
 	 * @param conceptId
 	 *            id of the concept
 	 * @return the entity type related with the concept
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public EntityType getEntityTypeByConceptId(String token, long conceptId)
+	public EntityType getEntityTypeByConceptId(String token, String conceptId)
 			throws SecurityException, SocialServiceException {
 		try {
-			String json = RemoteConnector.getJSON(serviceUrl, SERVICE
-					+ GET_ENTITY_TYPE_BY_CONCEPT_ID + conceptId, token, null);
+			String json = RemoteConnector.getJSON(serviceUrl, TYPES_BY_CONCEPT + conceptId, token, null);
 			return EntityType.toObject(json);
 		} catch (RemoteException e) {
 			throw new SocialServiceException(e);
@@ -624,10 +897,10 @@ public class SocialService {
 
 	/**
 	 * Retrieves a list of entity types that satisfy given prefix, sized by
-	 * maxResults parameter (if it is setted)
+	 * maxResults parameter (if set)
 	 * 
 	 * @param token
-	 *            authentication token
+	 *            access token
 	 * @param prefix
 	 *            prefix of entity type name to search
 	 * @param maxResults
@@ -636,15 +909,14 @@ public class SocialService {
 	 * @throws SocialServiceException
 	 */
 
-	public List<EntityType> getEntityTypeByPrefix(String token, String prefix,
+	public EntityTypes getEntityTypeByPrefix(String token, String prefix,
 			Integer maxResults) throws SocialServiceException {
 		try {
 			Map<String, Object> parameters = new HashMap<String, Object>();
-			parameters.put("maxResults", maxResults);
-			prefix = URLEncoder.encode(prefix, ENCODE_FORMAT);
-			String json = RemoteConnector.getJSON(serviceUrl, SERVICE
-					+ GET_ENTITY_TYPE_BY_PREFIX + prefix, token, parameters);
-			return EntityType.toList(json);
+			if (maxResults != null && maxResults > 0 ) parameters.put("maxResults", maxResults);
+			parameters.put("prefix", prefix);
+			String json = RemoteConnector.getJSON(serviceUrl, TYPES, token, parameters);
+			return EntityTypes.toObject(json);
 		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
@@ -655,7 +927,7 @@ public class SocialService {
 	 * retrieves a list of tags by a prefix for a maximum number of results
 	 * 
 	 * @param token
-	 *            authentication token
+	 *            access token
 	 * @param prefix
 	 *            prefix to search in tag name
 	 * @param maxResults
@@ -665,84 +937,17 @@ public class SocialService {
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public List<Concept> getConceptByPrefix(String token, String prefix,
-			Integer maxResults) throws SecurityException,
+	public Concepts getConceptByPrefix(String token, String prefix, Integer maxResults) throws SecurityException,
 			SocialServiceException {
 		try {
 			Map<String, Object> parameters = new HashMap<String, Object>();
-			parameters.put("maxResults", maxResults);
-			prefix = URLEncoder.encode(prefix, ENCODE_FORMAT);
-			String json = RemoteConnector.getJSON(serviceUrl, SERVICE
-					+ GET_CONCEPTS + prefix, token, parameters);
-			return Concept.toList(json);
+			if (maxResults != null && maxResults > 0 ) parameters.put("maxResults", maxResults);
+			parameters.put("prefix", prefix);
+			String json = RemoteConnector.getJSON(serviceUrl, CONCEPTS, token, parameters);
+			return Concepts.toObject(json);
 		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
 	}
 
-	/**
-	 * creates an entity
-	 * 
-	 * @param token
-	 *            authentication token
-	 * @param entity
-	 *            entity to create
-	 * @return entity created with id field populated
-	 * @throws SecurityException
-	 * @throws SocialServiceException
-	 */
-	public Entity createEntity(String token, Entity entity)
-			throws SecurityException, SocialServiceException {
-		try {
-			String json = RemoteConnector.postJSON(serviceUrl,
-					SERVICE + ENTITY, Entity.toJson(entity), token, null);
-			return Entity.toObject(json);
-		} catch (Exception e) {
-			throw new SocialServiceException(e);
-		}
-	}
-
-	/**
-	 * deletes an entity
-	 * 
-	 * @param token
-	 *            authentication token
-	 * @param entityId
-	 *            id of the entity to delete
-	 * @return true if operation gone fine, false otherwise
-	 * @throws SecurityException
-	 * @throws SocialServiceException
-	 */
-	public boolean deleteEntity(String token, long entityId)
-			throws SecurityException, SocialServiceException {
-		try {
-			String json = RemoteConnector.deleteJSON(serviceUrl, SERVICE
-					+ ENTITY + entityId, token);
-			return new Boolean(json);
-		} catch (Exception e) {
-			throw new SocialServiceException(e);
-		}
-	}
-
-	/**
-	 * updates an entity
-	 * 
-	 * @param token
-	 *            authentication token
-	 * @param entity
-	 *            entity to update
-	 * @return true if operation gone fine, false otherwise
-	 * @throws SecurityException
-	 * @throws SocialServiceException
-	 */
-	public boolean updateEntity(String token, Entity entity)
-			throws SecurityException, SocialServiceException {
-		try {
-			String json = RemoteConnector.putJSON(serviceUrl, SERVICE + ENTITY,
-					Entity.toJson(entity), token);
-			return new Boolean(json);
-		} catch (Exception e) {
-			throw new SocialServiceException(e);
-		}
-	}
 }

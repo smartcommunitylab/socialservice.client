@@ -15,23 +15,23 @@
  ******************************************************************************/
 package eu.trentorise.smartcampus.socialservice;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
 
 import junit.framework.Assert;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import eu.trentorise.smartcampus.socialservice.model.Concept;
-import eu.trentorise.smartcampus.socialservice.model.Entity;
-import eu.trentorise.smartcampus.socialservice.model.EntityType;
-import eu.trentorise.smartcampus.socialservice.model.Group;
-import eu.trentorise.smartcampus.socialservice.model.ShareOperation;
-import eu.trentorise.smartcampus.socialservice.model.ShareVisibility;
-import eu.trentorise.smartcampus.socialservice.model.SharedContent;
-import eu.trentorise.smartcampus.socialservice.model.Topic;
-import eu.trentorise.smartcampus.socialservice.model.Topic.TopicStatus;
+import eu.trentorise.smartcampus.social.model.Communities;
+import eu.trentorise.smartcampus.social.model.Community;
+import eu.trentorise.smartcampus.social.model.Concept;
+import eu.trentorise.smartcampus.social.model.Concepts;
+import eu.trentorise.smartcampus.social.model.Entities;
+import eu.trentorise.smartcampus.social.model.Entity;
+import eu.trentorise.smartcampus.social.model.EntityRequest;
+import eu.trentorise.smartcampus.social.model.EntityType;
+import eu.trentorise.smartcampus.social.model.Group;
+import eu.trentorise.smartcampus.social.model.ShareVisibility;
 
 public class TestClient {
 
@@ -39,79 +39,236 @@ public class TestClient {
 
 	@Before
 	public void init() {
-		socialService = new SocialService(Constants.SERVICE_URL);
+		socialService = new SocialService("http://localhost:8088/smartcampus.socialservice");
+		try {
+			
+			socialService.removeUserFromCommunity(
+					Constants.USER_AUTH_TOKEN, Constants.SC_COMMUNITY_ID);
+			socialService.deleteCommunity(Constants.PRIVATE_COMMUNITY, Constants.CLIENT_AUTH_TOKEN);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}	
 	}
 
 	@Test
 	public void groups() throws SecurityException, SocialServiceException {
 		// get groups
-		int size = socialService.getGroups(Constants.AUTH_TOKEN).size();
+		int size = socialService.getUserGroups(Constants.USER_AUTH_TOKEN).getContent().size();
 
 		// create group
-		Group g = socialService.createGroup(Constants.AUTH_TOKEN,
-				"example group");
+		Group g = socialService.createUserGroup(Constants.USER_AUTH_TOKEN, "example group");
 		Assert.assertNotNull(g);
 		Assert.assertEquals(size + 1,
-				socialService.getGroups(Constants.AUTH_TOKEN).size());
+				socialService.getUserGroups(Constants.USER_AUTH_TOKEN).getContent().size());
 
 		// update group
 		String modName = "group MOD";
 		g.setName(modName);
-		Assert.assertTrue(socialService.updateGroup(Constants.AUTH_TOKEN, g));
-		g = socialService.getGroup(g.getId(), Constants.AUTH_TOKEN);
+		Assert.assertTrue(socialService.updateUserGroup(Constants.USER_AUTH_TOKEN, g));
+		g = socialService.getUserGroup(g.getSocialId(), Constants.USER_AUTH_TOKEN);
 		Assert.assertEquals(modName, g.getName());
+
+		// add user to group
+		Assert.assertTrue(socialService.addUsersToGroup(g.getSocialId(), Collections.singletonList(Constants.OTHER_USER_SOCIAL_ID), Constants.USER_AUTH_TOKEN));
+		Assert.assertEquals(1,socialService.getUserGroup(g.getSocialId(), Constants.USER_AUTH_TOKEN).getUsers().size());
+
+		// delete user from group
+		Assert.assertTrue(socialService.removeUsersFromGroup(g.getSocialId(), Collections.singletonList(Constants.OTHER_USER_SOCIAL_ID), Constants.USER_AUTH_TOKEN));
+		Assert.assertEquals(0,socialService.getUserGroup(g.getSocialId(), Constants.USER_AUTH_TOKEN).getUsers().size());
+
 		// delete group
-		Assert.assertTrue(socialService.deleteGroup(Constants.AUTH_TOKEN,
-				g.getId()));
+		Assert.assertTrue(socialService.deleteUserGroup(Constants.USER_AUTH_TOKEN, g.getSocialId()));
 	}
+
+	@Test
+	public void userCommunities() throws SecurityException, SocialServiceException {
+		// get communities
+		Communities comms = socialService.getUserCommunities(Constants.USER_AUTH_TOKEN);
+		Assert.assertNotNull(comms);
+		Assert.assertEquals(0, comms.getContent().size());
+
+		// add user to community
+		Assert.assertTrue(socialService.addUserToCommunity(Constants.USER_AUTH_TOKEN, Constants.SC_COMMUNITY_ID));
+		comms = socialService.getCommunities(Constants.USER_AUTH_TOKEN);
+		Assert.assertEquals(1, comms.getContent().size());
+		
+		// remove user from community
+		Assert.assertTrue(socialService.removeUserFromCommunity(
+				Constants.USER_AUTH_TOKEN, Constants.SC_COMMUNITY_ID));
+	}
+	
 
 	@Test
 	public void communities() throws SecurityException, SocialServiceException {
 		// get communities
-		Assert.assertNotNull(socialService.getCommunities(Constants.AUTH_TOKEN));
+		Communities comms = socialService.getCommunities(Constants.USER_AUTH_TOKEN);
+		Assert.assertNotNull(comms);
+		Assert.assertTrue(comms.getContent().size() > 0);
+		// public community ops
+		Community c = comms.getContent().get(0);
+		Assert.assertNotNull(socialService.getCommunity(c.getId(), Constants.USER_AUTH_TOKEN));
+		Assert.assertNotNull(socialService.getCommunityBySocialId(c.getSocialId(), Constants.USER_AUTH_TOKEN));
 
-		// add user to community
-		Assert.assertTrue(socialService.addUserToCommunity(
-				Constants.AUTH_TOKEN, Constants.SC_COMMUNITY_ID));
+		Community newC = new Community();
+		newC.setName("MyCommunity");
+		c = socialService.createCommunity(Constants.PRIVATE_COMMUNITY, newC, Constants.CLIENT_AUTH_TOKEN);
+		Assert.assertNotNull(c);
 
-		// remove user from community
-		Assert.assertTrue(socialService.removeUserFromCommunity(
-				Constants.AUTH_TOKEN, Constants.SC_COMMUNITY_ID));
+		c = socialService.getCommunity(Constants.PRIVATE_COMMUNITY, Constants.USER_AUTH_TOKEN);
+		Assert.assertNotNull(c);
+		c = socialService.getCommunityBySocialId(c.getSocialId(), Constants.USER_AUTH_TOKEN);
+		Assert.assertNotNull(c);
+		
+		Assert.assertTrue(socialService.deleteCommunity(c.getId(), Constants.CLIENT_AUTH_TOKEN));
+	}	
+
+	@Test
+	public void userData() throws SecurityException, SocialServiceException {
+		Concepts concepts = socialService.getConceptByPrefix(Constants.USER_AUTH_TOKEN, "concert", 1);
+		Concept test = concepts.getContent().get(0);
+		EntityType entityType = socialService.getEntityTypeByConceptId(Constants.USER_AUTH_TOKEN, test.getId());
+
+		if (entityType == null) {
+			entityType = socialService.createEntityType(Constants.USER_AUTH_TOKEN,test.getId());
+		}
+
+		Entities entities = socialService.getUserEntities(Constants.USER_AUTH_TOKEN, null, null, entityType.getId());
+		Assert.assertNotNull(entities);		
+		int size = entities.getContent().size();
+		Assert.assertEquals(0, size);
+
+		EntityRequest req = new EntityRequest();
+		req.setDescription("descr");
+		req.setName("name");
+		req.setTags(Collections.singletonList(test));
+		req.setTypeId(entityType.getId());
+		// create
+		Entity e = socialService.createUserEntity(Constants.USER_AUTH_TOKEN, req);
+		Assert.assertNotNull(e);
+		entities = socialService.getUserEntities(Constants.USER_AUTH_TOKEN, null, null, entityType.getId());
+		Assert.assertEquals(size+1,entities.getContent().size());
+		
+		// update
+		req.setId(e.getEntityId());
+		req.setName("new name");
+		Assert.assertTrue(socialService.updateUserEntity(Constants.USER_AUTH_TOKEN, req));
+		
+		// read
+		e = socialService.getUserEntity(Constants.USER_AUTH_TOKEN, e.getEntityId());
+		Assert.assertEquals("new name", e.getTitle());
+		
+		// delete
+		Assert.assertTrue(socialService.deleteUserEntity(Constants.USER_AUTH_TOKEN, e.getEntityId()));
 	}
 
 	@Test
-	public void topics() throws SecurityException, SocialServiceException {
-		// get topics
-		Assert.assertNotNull(socialService.getTopics(Constants.AUTH_TOKEN));
+	public void communityData() throws SecurityException, SocialServiceException {
+		EntityRequest req = new EntityRequest();
+		req.setDescription("descr");
+		req.setName("name");
 
-		// create topic
-		Topic t = new Topic();
-		t.setAllCommunities(true);
-		t.setName("test topic");
-		t.setStatus(TopicStatus.ACTIVE.getValue());
-		t = socialService.createTopic(Constants.AUTH_TOKEN, t);
-		Assert.assertTrue(Long.valueOf(t.getId()) > 0);
+		Community c = socialService.getCommunity(Constants.PRIVATE_COMMUNITY, Constants.USER_AUTH_TOKEN);
+		if (c == null) {
+			c = new Community();
+			c.setName("MyCommunity");
+			c = socialService.createCommunity(Constants.PRIVATE_COMMUNITY, c, Constants.CLIENT_AUTH_TOKEN);
+			Assert.assertNotNull(c);
+		}
 
-		// update topic
-		t.setName("topic MOD");
-		Assert.assertTrue(socialService.updateTopic(Constants.AUTH_TOKEN, t));
-		t = socialService.getTopic(Constants.AUTH_TOKEN, t.getId());
-		Assert.assertEquals("topic MOD", t.getName());
+		Concepts concepts = socialService.getConceptByPrefix(Constants.USER_AUTH_TOKEN, "concert", 1);
+		Concept test = concepts.getContent().get(0);
+		EntityType entityType = socialService.getEntityTypeByConceptId(Constants.USER_AUTH_TOKEN, test.getId());
 
-		// change status
-		Assert.assertEquals(TopicStatus.ACTIVE.getValue(), t.getStatus());
-		Assert.assertTrue(socialService.changeTopicStatus(Constants.AUTH_TOKEN,
-				t.getId(), TopicStatus.SUSPENDED));
-		t = socialService.getTopic(Constants.AUTH_TOKEN, t.getId());
-		Assert.assertEquals(TopicStatus.SUSPENDED.getValue(), t.getStatus());
+		if (entityType == null) {
+			entityType = socialService.createEntityType(Constants.USER_AUTH_TOKEN,test.getId());
+		}
 
-		// delete topic
-		Assert.assertTrue(socialService.deleteTopic(Constants.AUTH_TOKEN,
-				t.getId()));
+//		Entities entities = socialService.getUserEntities(Constants.USER_AUTH_TOKEN, null, null, entityType.getId());
+//		Assert.assertNotNull(entities);		
+//		int size = entities.getContent().size();
+//		Assert.assertEquals(0, size);
+
+		req.setTags(Collections.singletonList(test));
+		req.setTypeId(entityType.getId());
+		// create
+		Entity e = socialService.createCommunityEntity(Constants.PRIVATE_COMMUNITY, Constants.CLIENT_AUTH_TOKEN, req);
+		Assert.assertNotNull(e);
+//		entities = socialService.getUserEntities(Constants.USER_AUTH_TOKEN, null, null, entityType.getId());
+//		Assert.assertEquals(size+1,entities.getContent().size());
+		
+		// update
+		req.setId(e.getEntityId());
+		req.setName("new name");
+		Assert.assertTrue(socialService.updateCommunityEntity(Constants.PRIVATE_COMMUNITY, Constants.CLIENT_AUTH_TOKEN, req));
+		
+		// read
+		e = socialService.getCommunityEntity(Constants.PRIVATE_COMMUNITY, Constants.CLIENT_AUTH_TOKEN, e.getEntityId());
+		Assert.assertEquals("new name", e.getTitle());
+		
+		// delete
+		Assert.assertTrue(socialService.deleteCommunityEntity(Constants.PRIVATE_COMMUNITY, Constants.CLIENT_AUTH_TOKEN, e.getEntityId()));
+		// delete community
+		Assert.assertTrue(socialService.deleteCommunity(c.getId(), Constants.CLIENT_AUTH_TOKEN));
 	}
 
 	@Test
-	public void sharing() throws SecurityException, SocialServiceException {
+	public void userSharing() throws SecurityException, SocialServiceException {
+		
+		ShareVisibility visibility = new ShareVisibility();
+		visibility.setAllCommunities(true);
+		visibility.setAllKnownCommunities(true);
+		visibility.setAllKnownUsers(true);
+		visibility.setAllUsers(true);
+
+		Entities entities = socialService.getEntitiesSharedWithUser(Constants.USER_AUTH_TOKEN, visibility, 0, 10, null);
+		Assert.assertNotNull(entities);
+
+		Concepts concepts = socialService.getConceptByPrefix(Constants.USER_AUTH_TOKEN, "concert", 1);
+		Concept test = concepts.getContent().get(0);
+		EntityType entityType = socialService.getEntityTypeByConceptId(Constants.USER_AUTH_TOKEN, test.getId());
+
+		if (entityType == null) {
+			entityType = socialService.createEntityType(Constants.USER_AUTH_TOKEN,test.getId());
+		}
+		EntityRequest req = new EntityRequest();
+		req.setDescription("descr");
+		req.setName("name");
+		req.setTags(Collections.singletonList(test));
+		req.setTypeId(entityType.getId());
+		// create
+		Entity e = socialService.createUserEntity(Constants.USER_AUTH_TOKEN, req);
+		
+		// share
+		Assert.assertTrue(socialService.shareUserEntity(Constants.USER_AUTH_TOKEN, e.getEntityId(), visibility));
+		e = socialService.getUserEntity(Constants.USER_AUTH_TOKEN, e.getEntityId());
+		Assert.assertTrue(e.getVisibility().isAllKnownUsers());
+		Assert.assertTrue(e.getVisibility().isAllUsers());
+		Assert.assertNull(e.getVisibility().getCommunityIds());
+		Assert.assertTrue(e.getVisibility().getGroupIds().isEmpty());
+		Assert.assertTrue(e.getVisibility().getUserIds().isEmpty());
+		
+		// unshare
+		socialService.unshareUserEntity(Constants.USER_AUTH_TOKEN, e.getEntityId());
+		e = socialService.getUserEntity(Constants.USER_AUTH_TOKEN, e.getEntityId());
+		Assert.assertFalse(e.getVisibility().isAllKnownUsers());
+		Assert.assertFalse(e.getVisibility().isAllUsers());
+		Assert.assertNull(e.getVisibility().getCommunityIds());
+		Assert.assertTrue(e.getVisibility().getGroupIds().isEmpty());
+		Assert.assertTrue(e.getVisibility().getUserIds().isEmpty());
+		
+		socialService.deleteUserEntity(Constants.USER_AUTH_TOKEN, e.getEntityId());
+	}
+
+	@Test
+	public void communitySharing() throws SecurityException, SocialServiceException {
+		
+		Community c = socialService.getCommunity(Constants.PRIVATE_COMMUNITY, Constants.USER_AUTH_TOKEN);
+		if (c == null) {
+			c = new Community();
+			c.setName("MyCommunity");
+			c = socialService.createCommunity(Constants.PRIVATE_COMMUNITY, c, Constants.CLIENT_AUTH_TOKEN);
+			Assert.assertNotNull(c);
+		}
 
 		ShareVisibility visibility = new ShareVisibility();
 		visibility.setAllCommunities(true);
@@ -119,112 +276,60 @@ public class TestClient {
 		visibility.setAllKnownUsers(true);
 		visibility.setAllUsers(true);
 
-		socialService.getSharedContents(Constants.AUTH_TOKEN, visibility, 0,
-				10, null);
-		List<SharedContent> contents = socialService.getMyContents(
-				Constants.AUTH_TOKEN, 0, 5, null);
-		Assert.assertTrue(contents.size() > 0);
+//		Entities entities = socialService.getEntitiesSharedWithUser(Constants.USER_AUTH_TOKEN, visibility, 0, 10, null);
+//		Assert.assertNotNull(entities);
 
-		ShareOperation shareOperation = new ShareOperation();
-		shareOperation.setEntityId(contents.get(0).getEntityId());
-		shareOperation.setVisibility(visibility);
-		Assert.assertTrue(socialService.share(Constants.AUTH_TOKEN,
-				shareOperation));
+		Concepts concepts = socialService.getConceptByPrefix(Constants.CLIENT_AUTH_TOKEN, "concert", 1);
+		Concept test = concepts.getContent().get(0);
+		EntityType entityType = socialService.getEntityTypeByConceptId(Constants.CLIENT_AUTH_TOKEN, test.getId());
 
-		Assert.assertNotNull(socialService.getShareVisibility(
-				Constants.AUTH_TOKEN, contents.get(0).getEntityId()));
+		if (entityType == null) {
+			entityType = socialService.createEntityType(Constants.CLIENT_AUTH_TOKEN,test.getId());
+		}
+		EntityRequest req = new EntityRequest();
+		req.setDescription("descr");
+		req.setName("name");
+		req.setTags(Collections.singletonList(test));
+		req.setTypeId(entityType.getId());
+		// create
+		Entity e = socialService.createCommunityEntity(Constants.PRIVATE_COMMUNITY,Constants.CLIENT_AUTH_TOKEN, req);
+		
+		// share
+		Assert.assertTrue(socialService.shareCommunityEntity(Constants.PRIVATE_COMMUNITY,Constants.CLIENT_AUTH_TOKEN, e.getEntityId(), visibility));
+		e = socialService.getCommunityEntity(Constants.PRIVATE_COMMUNITY,Constants.CLIENT_AUTH_TOKEN, e.getEntityId());
+		Assert.assertNotNull(e.getVisibility());
+		Assert.assertTrue(e.getVisibility().isAllKnownUsers());
+		Assert.assertTrue(e.getVisibility().isAllUsers());
+		Assert.assertNull(e.getVisibility().getCommunityIds());
+		Assert.assertTrue(e.getVisibility().getGroupIds().isEmpty());
+		Assert.assertTrue(e.getVisibility().getUserIds().isEmpty());
+		
+		// unshare
+		socialService.unshareCommnunityEntity(Constants.PRIVATE_COMMUNITY,Constants.CLIENT_AUTH_TOKEN, e.getEntityId());
+		e = socialService.getCommunityEntity(Constants.PRIVATE_COMMUNITY, Constants.CLIENT_AUTH_TOKEN, e.getEntityId());
+		Assert.assertFalse(e.getVisibility().isAllKnownUsers());
+		Assert.assertFalse(e.getVisibility().isAllUsers());
+		Assert.assertNull(e.getVisibility().getCommunityIds());
+		Assert.assertTrue(e.getVisibility().getGroupIds().isEmpty());
+		Assert.assertTrue(e.getVisibility().getUserIds().isEmpty());
+		
+		socialService.deleteCommunityEntity(Constants.PRIVATE_COMMUNITY,Constants.CLIENT_AUTH_TOKEN, e.getEntityId());
 	}
 
 	@Test
 	public void entityTypes() throws SecurityException, SocialServiceException {
-		List<Concept> concepts = socialService.getConceptByPrefix(
-				Constants.AUTH_TOKEN, "test", 1);
+		Concepts concepts = socialService.getConceptByPrefix(
+				Constants.USER_AUTH_TOKEN, "test", 1);
 		Assert.assertNotNull(concepts);
-		Assert.assertTrue(concepts.size() > 0);
-		if (socialService.getEntityTypeByConceptId(Constants.AUTH_TOKEN,
-				concepts.get(0).getId()) == null) {
-			socialService.createEntityType(Constants.AUTH_TOKEN, concepts
-					.get(0).getId());
+		Assert.assertTrue(concepts.getContent().size() > 0);
+		EntityType et = null;
+		if ((et = socialService.getEntityTypeByConceptId(Constants.USER_AUTH_TOKEN, concepts.getContent().get(0).getId())) == null) {
+			et = socialService.createEntityType(Constants.USER_AUTH_TOKEN, concepts.getContent().get(0).getId());
 		}
-		Assert.assertNotNull(socialService.getEntityTypeByConceptId(
-				Constants.AUTH_TOKEN, concepts.get(0).getId()));
-	}
+		Assert.assertNotNull(et);
+		Assert.assertNotNull(socialService.getEntityTypeByConceptId(Constants.USER_AUTH_TOKEN, et.getConcept().getId()));
+		Assert.assertNotNull(socialService.getEntityTypeByPrefix(Constants.USER_AUTH_TOKEN, "test", 10));
+		Assert.assertNotNull(socialService.getEntityTypeById(Constants.USER_AUTH_TOKEN, et.getId()));
 
-	@Test
-	public void entities() throws SecurityException, SocialServiceException {
-
-		Assert.assertEquals(
-				1,
-				socialService.getEntityTypeByPrefix(Constants.AUTH_TOKEN,
-						"event", null).size());
-		Assert.assertEquals(
-				0,
-				socialService.getEntityTypeByPrefix(Constants.AUTH_TOKEN,
-						"dummie", null).size());
-
-		List<Concept> concepts = socialService.getConceptByPrefix(
-				Constants.AUTH_TOKEN, "test", null);
-		Assert.assertNotNull(concepts);
-		Assert.assertTrue(concepts.size() > 0);
-		EntityType type = socialService.getEntityTypeByConceptId(
-				Constants.AUTH_TOKEN, concepts.get(0).getId());
-		if (type == null) {
-			type = socialService.createEntityType(Constants.AUTH_TOKEN,
-					concepts.get(0).getId());
-		}
-		Entity entity = new Entity();
-		entity.setCreatorId(Constants.CREATOR_ID);
-		entity.setDescription("entity description");
-		entity.setName("entity test");
-		entity.setType(type.getName());
-		entity.setTags(Arrays.asList(concepts.get(0), concepts.get(1),
-				concepts.get(2)));
-
-		entity = socialService.createEntity(Constants.AUTH_TOKEN, entity);
-		Assert.assertNotNull(entity);
-		Assert.assertNotNull(entity.getId());
-		Assert.assertEquals("entity description", entity.getDescription());
-
-		entity.setDescription("MODIFIED");
-		Assert.assertTrue(socialService.updateEntity(Constants.AUTH_TOKEN,
-				entity));
-		Assert.assertTrue(socialService.deleteEntity(Constants.AUTH_TOKEN,
-				entity.getId()));
-
-		entity = new Entity();
-		entity.setCreatorId(Constants.CREATOR_ID);
-		entity.setDescription("entity description");
-		entity.setName("entity test");
-		entity.setTypeId(type.getId());
-
-		entity = socialService.createEntity(Constants.AUTH_TOKEN, entity);
-		Assert.assertNotNull(entity);
-		Assert.assertTrue(socialService.deleteEntity(Constants.AUTH_TOKEN,
-				entity.getId()));
-
-	}
-
-	@Test(expected = SocialServiceException.class)
-	public void entitiesFailure() throws SecurityException,
-			SocialServiceException {
-		List<Concept> concepts = socialService.getConceptByPrefix(
-				Constants.AUTH_TOKEN, "test", 1);
-		Assert.assertNotNull(concepts);
-		Assert.assertTrue(concepts.size() > 0);
-		EntityType type = socialService.getEntityTypeByConceptId(
-				Constants.AUTH_TOKEN, concepts.get(0).getId());
-		if (type == null) {
-			type = socialService.createEntityType(Constants.AUTH_TOKEN,
-					concepts.get(0).getId());
-		}
-		Entity entity = new Entity();
-		entity.setCreatorId(Constants.CREATOR_ID);
-		entity.setDescription("entity description");
-		entity.setName("entity test");
-		entity.setTags(Arrays.asList(concepts.get(0), concepts.get(1),
-				concepts.get(2)));
-
-		Assert.assertNotNull(socialService.createEntity(Constants.AUTH_TOKEN,
-				entity));
 	}
 }
