@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>eu.trentorise.smartcampus</groupId>
 	<artifactId>socialservice.client</artifactId>
-	<version>1.1</version>
+	<version>2.0</version>
 	<packaging>jar</packaging>
 
 	<dependencies>
@@ -26,12 +26,12 @@
 		<dependency>
 			<groupId>eu.trentorise.smartcampus</groupId>
 			<artifactId>smartcampus.client.commons</artifactId>
-			<version>1.1</version>
+			<version>2.0</version>
 		</dependency>
         <dependency>
             <groupId>eu.trentorise.smartcampus</groupId>
             <artifactId>smartcampus.socialservice.model</artifactId>
-            <version>1.1</version>
+            <version>2.0</version>
         </dependency>
 	</dependencies>
 
