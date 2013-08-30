@@ -39,7 +39,7 @@ public class TestClient {
 
 	@Before
 	public void init() {
-		socialService = new SocialService("http://localhost:8088/smartcampus.socialservice");
+		socialService = new SocialService("https://vas-dev.smartcampuslab.it/core.social");
 		try {
 			
 			socialService.removeUserFromCommunity(
@@ -135,7 +135,6 @@ public class TestClient {
 		Entities entities = socialService.getUserEntities(Constants.USER_AUTH_TOKEN, null, null, entityType.getId());
 		Assert.assertNotNull(entities);		
 		int size = entities.getContent().size();
-		Assert.assertEquals(0, size);
 
 		EntityRequest req = new EntityRequest();
 		req.setDescription("descr");
@@ -243,7 +242,7 @@ public class TestClient {
 		e = socialService.getUserEntity(Constants.USER_AUTH_TOKEN, e.getEntityId());
 		Assert.assertTrue(e.getVisibility().isAllKnownUsers());
 		Assert.assertTrue(e.getVisibility().isAllUsers());
-		Assert.assertNull(e.getVisibility().getCommunityIds());
+		Assert.assertEquals(0,e.getVisibility().getCommunityIds().size());
 		Assert.assertTrue(e.getVisibility().getGroupIds().isEmpty());
 		Assert.assertTrue(e.getVisibility().getUserIds().isEmpty());
 		
@@ -252,7 +251,7 @@ public class TestClient {
 		e = socialService.getUserEntity(Constants.USER_AUTH_TOKEN, e.getEntityId());
 		Assert.assertFalse(e.getVisibility().isAllKnownUsers());
 		Assert.assertFalse(e.getVisibility().isAllUsers());
-		Assert.assertNull(e.getVisibility().getCommunityIds());
+		Assert.assertEquals(0, e.getVisibility().getCommunityIds().size());
 		Assert.assertTrue(e.getVisibility().getGroupIds().isEmpty());
 		Assert.assertTrue(e.getVisibility().getUserIds().isEmpty());
 		
@@ -300,7 +299,7 @@ public class TestClient {
 		Assert.assertNotNull(e.getVisibility());
 		Assert.assertTrue(e.getVisibility().isAllKnownUsers());
 		Assert.assertTrue(e.getVisibility().isAllUsers());
-		Assert.assertNull(e.getVisibility().getCommunityIds());
+		Assert.assertEquals(0, e.getVisibility().getCommunityIds().size());
 		Assert.assertTrue(e.getVisibility().getGroupIds().isEmpty());
 		Assert.assertTrue(e.getVisibility().getUserIds().isEmpty());
 		
@@ -309,7 +308,7 @@ public class TestClient {
 		e = socialService.getCommunityEntity(Constants.PRIVATE_COMMUNITY, Constants.CLIENT_AUTH_TOKEN, e.getEntityId());
 		Assert.assertFalse(e.getVisibility().isAllKnownUsers());
 		Assert.assertFalse(e.getVisibility().isAllUsers());
-		Assert.assertNull(e.getVisibility().getCommunityIds());
+		Assert.assertEquals(0,e.getVisibility().getCommunityIds().size());
 		Assert.assertTrue(e.getVisibility().getGroupIds().isEmpty());
 		Assert.assertTrue(e.getVisibility().getUserIds().isEmpty());
 		
