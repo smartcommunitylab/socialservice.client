@@ -43,7 +43,6 @@ public class SocialService {
 	private static final String USER_COMMUNITY = "user/community/";
 
 	private static final String COMMUNITY = "community/";
-	private static final String COMMUNITY_BY_SOCIAL = "community/social/";
 
 	private static final String USER_CONTENTS = "user/entities/";
 
@@ -308,8 +307,10 @@ public class SocialService {
 	public boolean addUserToCommunity(String token, String communityId)
 			throws SocialServiceException, SecurityException {
 		try {
-			String json = RemoteConnector.putJSON(serviceUrl, USER_COMMUNITY
-					+ communityId + "/member", null, token);
+			String relativePath = String.format("%s%s/member", USER_COMMUNITY,
+					communityId);
+			String json = RemoteConnector.putJSON(serviceUrl, relativePath,
+					null, token);
 			json = extractResultData(json);
 			return new Boolean(json);
 		} catch (RemoteException e) {
@@ -330,8 +331,10 @@ public class SocialService {
 	public boolean removeUserFromCommunity(String token, String communityId)
 			throws SocialServiceException, SecurityException {
 		try {
-			String json = RemoteConnector.deleteJSON(serviceUrl, USER_COMMUNITY
-					+ communityId + "/member", token);
+			String relativePath = String.format("%s%s/member", USER_COMMUNITY,
+					communityId);
+			String json = RemoteConnector.deleteJSON(serviceUrl, relativePath,
+					token);
 			json = extractResultData(json);
 			return new Boolean(json);
 		} catch (RemoteException e) {
@@ -355,8 +358,10 @@ public class SocialService {
 	public Community createCommunity(String appId, Community community,
 			String token) throws SocialServiceException, SecurityException {
 		try {
-			String json = RemoteConnector.putJSON(serviceUrl, "app/" + appId
-					+ "/" + COMMUNITY, JsonUtils.toJSON(community), token);
+			String relativePath = String.format("app/%s/%s", Constants.APPID,
+					COMMUNITY);
+			String json = RemoteConnector.postJSON(serviceUrl, relativePath,
+					JsonUtils.toJSON(community), token);
 			json = extractResultData(json);
 			return JsonUtils.toObject(json, Community.class);
 		} catch (RemoteException e) {
