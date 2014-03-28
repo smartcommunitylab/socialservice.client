@@ -357,24 +357,23 @@ public class TestClient {
 
 	@Test
 	public void entityTypes() throws SecurityException, SocialServiceException {
-		Concepts concepts = socialService.getConceptByPrefix(
-				Constants.USER_AUTH_TOKEN, "test", 1);
-		Assert.assertNotNull(concepts);
-		Assert.assertTrue(concepts.getContent().size() > 0);
-		EntityType et = null;
-		if ((et = socialService
-				.getEntityTypeByConceptId(Constants.USER_AUTH_TOKEN, concepts
-						.getContent().get(0).getId())) == null) {
-			et = socialService.createEntityType(Constants.USER_AUTH_TOKEN,
-					concepts.getContent().get(0).getId());
-		}
-		Assert.assertNotNull(et);
-		Assert.assertNotNull(socialService.getEntityTypeByConceptId(
-				Constants.USER_AUTH_TOKEN, et.getConcept().getId()));
-		Assert.assertNotNull(socialService.getEntityTypeByPrefix(
-				Constants.USER_AUTH_TOKEN, "test", 10));
-		Assert.assertNotNull(socialService.getEntityTypeById(
-				Constants.USER_AUTH_TOKEN, et.getId()));
+
+		int size = socialService
+				.getEntityTypes(Constants.USER_AUTH_TOKEN, null).size();
+
+		String name = "SocialService Client Type " + System.currentTimeMillis();
+		EntityType type = new EntityType(name, "image/jpg");
+
+		type = socialService.createEntityType(Constants.USER_AUTH_TOKEN, type);
+		Assert.assertNotNull(type);
+		Assert.assertEquals(size + 1,
+				socialService.getEntityTypes(Constants.USER_AUTH_TOKEN, null)
+						.size());
+
+		Assert.assertEquals(
+				name,
+				socialService.getEntityType(Constants.USER_AUTH_TOKEN,
+						type.getId()).getName());
 
 	}
 }

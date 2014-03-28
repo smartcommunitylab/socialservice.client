@@ -821,7 +821,7 @@ public class SocialService {
 	 * creates a new entity type
 	 * 
 	 * @param token
-	 *            client or user access token
+	 *            access token
 	 * @param entityType
 	 *            entity type to create
 	 * @return the entity type created
@@ -851,11 +851,13 @@ public class SocialService {
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public EntityType getEntityTypeById(String token, String entityTypeId)
+	public EntityType getEntityType(String token, String entityTypeId)
 			throws SecurityException, SocialServiceException {
 		try {
-			String json = RemoteConnector.getJSON(serviceUrl, TYPES
-					+ entityTypeId, token, null);
+			String relativePath = String.format("type/%s", entityTypeId);
+			String json = RemoteConnector.getJSON(serviceUrl, relativePath,
+					token, null);
+			json = extractResultData(json);
 			return JsonUtils.toObject(json, EntityType.class);
 		} catch (RemoteException e) {
 			throw new SocialServiceException(e);
@@ -863,55 +865,27 @@ public class SocialService {
 	}
 
 	/**
-	 * retrieves entity type by related concept id
+	 * retrieves all entity types defined in the system
 	 * 
 	 * @param token
 	 *            access token
-	 * @param conceptId
-	 *            id of the concept
-	 * @return the entity type related with the concept
+	 * @param limit
+	 *            filter and pagination criteria
+	 * @return list of entity types
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public EntityType getEntityTypeByConceptId(String token, String conceptId)
+	public List<EntityType> getEntityTypes(String token, Limit limit)
 			throws SecurityException, SocialServiceException {
 		try {
-			String json = RemoteConnector.getJSON(serviceUrl, TYPES_BY_CONCEPT
-					+ conceptId, token, null);
-			return JsonUtils.toObject(json, EntityType.class);
+			String relativePath = String.format("type");
+			String json = RemoteConnector.getJSON(serviceUrl, relativePath,
+					token, convertLimit(limit));
+			json = extractResultData(json);
+			return JsonUtils.toObjectList(json, EntityType.class);
 		} catch (RemoteException e) {
 			throw new SocialServiceException(e);
 		}
-	}
-
-	/**
-	 * Retrieves a list of entity types that satisfy given prefix, sized by
-	 * maxResults parameter (if set)
-	 * 
-	 * @param token
-	 *            access token
-	 * @param prefix
-	 *            prefix of entity type name to search
-	 * @param maxResults
-	 *            max number of results, if you leave null default value is 20
-	 * @return
-	 * @throws SocialServiceException
-	 */
-
-	public EntityTypes getEntityTypeByPrefix(String token, String prefix,
-			Integer maxResults) throws SocialServiceException {
-		try {
-			Map<String, Object> parameters = new HashMap<String, Object>();
-			if (maxResults != null && maxResults > 0)
-				parameters.put("maxResults", maxResults);
-			parameters.put("prefix", prefix);
-			String json = RemoteConnector.getJSON(serviceUrl, TYPES, token,
-					parameters);
-			return JsonUtils.toObject(json, EntityTypes.class);
-		} catch (Exception e) {
-			throw new SocialServiceException(e);
-		}
-
 	}
 
 	private String extractResultData(String response) {
