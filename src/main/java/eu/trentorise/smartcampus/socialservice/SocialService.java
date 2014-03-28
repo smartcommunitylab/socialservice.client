@@ -27,6 +27,7 @@ import eu.trentorise.smartcampus.socialservice.beans.Community;
 import eu.trentorise.smartcampus.socialservice.beans.Entity;
 import eu.trentorise.smartcampus.socialservice.beans.EntityType;
 import eu.trentorise.smartcampus.socialservice.beans.Group;
+import eu.trentorise.smartcampus.socialservice.beans.Limit;
 import eu.trentorise.smartcampus.socialservice.beans.Result;
 
 /**
@@ -44,17 +45,15 @@ public class SocialService {
 
 	private static final String COMMUNITY = "community/";
 
-	private static final String USER_CONTENTS = "user/entities/";
+	private static final String USER_CONTENTS = "user/entity/";
 
-	private static final String COMMUNITY_CONTENTS = "/entities/";
+	private static final String COMMUNITY_CONTENTS = "/entity/";
 
 	private static final String USER_SHARED = "user/shared/";
 
 	private static final String COMMUNITY_SHARED = "/shared/";
 
 	private static final String TYPES = "type/";
-	private static final String TYPES_BY_CONCEPT = "type/concept/";
-	private static final String CONCEPTS = "concept/";
 
 	private String serviceUrl;
 
@@ -401,35 +400,20 @@ public class SocialService {
 	 * 
 	 * @param token
 	 *            user access token
-	 * @param position
-	 *            counter to buffering result, leave null to not use
-	 * @param size
-	 *            number of results to get, leave null to get all
-	 * @param type
-	 *            type of resources to get, leave null to get all the types
-	 * @return the {@link Entities} object with list of resources created by the
-	 *         user
+	 * @param limit
+	 *            some filter criteria
+	 * 
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public Entities getUserEntities(String token, Integer position,
-			Integer size, String typeId) throws SecurityException,
-			SocialServiceException {
+	public List<Entity> getUserEntities(String token, Limit limit)
+			throws SecurityException, SocialServiceException {
 		try {
-			Map<String, Object> parameters = new HashMap<String, Object>();
-			if (position == null) {
-				position = -1;
-			}
-			if (size == null) {
-				size = -1;
-			}
 
-			parameters.put("position", position);
-			parameters.put("size", size);
-			parameters.put("type", typeId);
 			String json = RemoteConnector.getJSON(serviceUrl, USER_CONTENTS,
-					token, parameters);
-			return JsonUtils.toObject(json, Entities.class);
+					token, convertLimit(limit));
+			json = extractResultData(json);
+			return JsonUtils.toObjectList(json, Entity.class);
 		} catch (RemoteException e) {
 			throw new SocialServiceException(e);
 		}
@@ -440,17 +424,22 @@ public class SocialService {
 	 * 
 	 * @param token
 	 *            user access token
-	 * @param entityId
+	 * @param appId
+	 *            application social space containing the entity
+	 * @param localId
 	 *            entity ID
 	 * @return the {@link Entity} object
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public Entity getUserEntity(String token, String entityId)
+	public Entity getUserEntity(String token, String appId, String localId)
 			throws SecurityException, SocialServiceException {
 		try {
-			String json = RemoteConnector.getJSON(serviceUrl, USER_CONTENTS
-					+ entityId, token);
+			String relativePath = String.format("user/%s/entity/%s", appId,
+					localId);
+			String json = RemoteConnector.getJSON(serviceUrl, relativePath,
+					token);
+			json = extractResultData(json);
 			return JsonUtils.toObject(json, Entity.class);
 		} catch (RemoteException e) {
 			throw new SocialServiceException(e);
@@ -458,21 +447,26 @@ public class SocialService {
 	}
 
 	/**
-	 * creates a user entity
+	 * creates or update a user entity. Use this method to change visibility of
+	 * an entity (share/unshare)
 	 * 
 	 * @param token
 	 *            user access token
+	 * @param appId
+	 *            social application space in which create the entity
 	 * @param entity
 	 *            entity to create
 	 * @return {@link Entity} object representing entity created
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public Entity createUserEntity(String token, EntityRequest entity)
-			throws SecurityException, SocialServiceException {
+	public Entity createOrUpdateUserEntity(String token, String appId,
+			Entity entity) throws SecurityException, SocialServiceException {
 		try {
-			String json = RemoteConnector.postJSON(serviceUrl, USER_CONTENTS,
+			String relativePath = String.format("user/%s/entity", appId);
+			String json = RemoteConnector.postJSON(serviceUrl, relativePath,
 					JsonUtils.toJSON(entity), token);
+			json = extractResultData(json);
 			return JsonUtils.toObject(json, Entity.class);
 		} catch (Exception e) {
 			throw new SocialServiceException(e);
@@ -484,44 +478,28 @@ public class SocialService {
 	 * 
 	 * @param token
 	 *            user access token
-	 * @param entityId
+	 * @param appId
+	 *            application social space containing the entity
+	 * @param localId
 	 *            id of the entity to delete
 	 * @return true if operation gone fine, false otherwise
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public boolean deleteUserEntity(String token, String entityId)
-			throws SecurityException, SocialServiceException {
-		try {
-			String json = RemoteConnector.deleteJSON(serviceUrl, USER_CONTENTS
-					+ entityId, token);
-			return new Boolean(json);
-		} catch (Exception e) {
-			throw new SocialServiceException(e);
-		}
-	}
-
-	/**
-	 * updates a user entity
-	 * 
-	 * @param token
-	 *            user access token
-	 * @param entity
-	 *            entity to update
-	 * @return true if operation gone fine, false otherwise
-	 * @throws SecurityException
-	 * @throws SocialServiceException
-	 */
-	public boolean updateUserEntity(String token, EntityRequest entity)
-			throws SecurityException, SocialServiceException {
-		try {
-			String json = RemoteConnector.putJSON(serviceUrl, USER_CONTENTS
-					+ entity.getId(), JsonUtils.toJSON(entity), token);
-			return new Boolean(json);
-		} catch (Exception e) {
-			throw new SocialServiceException(e);
-		}
-	}
+	// public boolean deleteUserEntity(String token, String appId, String
+	// localId)
+	// throws SecurityException, SocialServiceException {
+	// try {
+	// String relativePath = String.format("user/%s/entity/%s", appId,
+	// localId);
+	// String json = RemoteConnector.deleteJSON(serviceUrl, relativePath,
+	// token);
+	// json = extractResultData(json);
+	// return new Boolean(json);
+	// } catch (Exception e) {
+	// throw new SocialServiceException(e);
+	// }
+	// }
 
 	/**
 	 * retrieves the entities created by the community
@@ -530,35 +508,22 @@ public class SocialService {
 	 *            community ID
 	 * @param token
 	 *            client access token
-	 * @param position
-	 *            counter to buffering result, leave null to not use
-	 * @param size
-	 *            number of results to get, leave null to get all
-	 * @param type
-	 *            type of resources to get, leave null to get all the types
+	 * @param limit
+	 *            filter and pagination criteria
 	 * @return the {@link Entities} object with list of resources created by the
 	 *         community
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public Entities getCommunityEntities(String communityId, String token,
-			Integer position, Integer size, String typeId)
-			throws SecurityException, SocialServiceException {
+	public List<Entity> getCommunityEntities(String communityId, String token,
+			Limit limit) throws SecurityException, SocialServiceException {
 		try {
-			Map<String, Object> parameters = new HashMap<String, Object>();
-			if (position == null) {
-				position = -1;
-			}
-			if (size == null) {
-				size = -1;
-			}
-
-			parameters.put("position", position);
-			parameters.put("size", size);
-			parameters.put("type", typeId);
-			String json = RemoteConnector.getJSON(serviceUrl, COMMUNITY
-					+ communityId + COMMUNITY_CONTENTS, token, parameters);
-			return JsonUtils.toObject(json, Entities.class);
+			String relativePath = String.format("app/%s/community/%s/entity",
+					Constants.APPID, communityId);
+			String json = RemoteConnector.getJSON(serviceUrl, relativePath,
+					token, convertLimit(limit));
+			json = extractResultData(json);
+			return JsonUtils.toObjectList(json, Entity.class);
 		} catch (RemoteException e) {
 			throw new SocialServiceException(e);
 		}
@@ -571,17 +536,21 @@ public class SocialService {
 	 *            community ID
 	 * @param token
 	 *            client access token
-	 * @param entityId
+	 * @param localId
 	 *            entity ID
 	 * @return the {@link Entity} object
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
 	public Entity getCommunityEntity(String communityId, String token,
-			String entityId) throws SecurityException, SocialServiceException {
+			String localId) throws SecurityException, SocialServiceException {
 		try {
-			String json = RemoteConnector.getJSON(serviceUrl, COMMUNITY
-					+ communityId + COMMUNITY_CONTENTS + entityId, token);
+			String relativePath = String.format(
+					"app/%s/community/%s/entity/%s", Constants.APPID,
+					communityId, localId);
+			String json = RemoteConnector.getJSON(serviceUrl, relativePath,
+					token);
+			json = extractResultData(json);
 			return JsonUtils.toObject(json, Entity.class);
 		} catch (RemoteException e) {
 			throw new SocialServiceException(e);
@@ -601,64 +570,16 @@ public class SocialService {
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public Entity createCommunityEntity(String communityId, String token,
-			EntityRequest entity) throws SecurityException,
+	public Entity createOrUpdateCommunityEntity(String communityId,
+			String token, Entity entity) throws SecurityException,
 			SocialServiceException {
 		try {
-			String json = RemoteConnector.postJSON(serviceUrl, COMMUNITY
-					+ communityId + COMMUNITY_CONTENTS,
+			String relativePath = String.format("app/%s/community/%s/entity",
+					Constants.APPID, communityId);
+			String json = RemoteConnector.postJSON(serviceUrl, relativePath,
 					JsonUtils.toJSON(entity), token);
+			json = extractResultData(json);
 			return JsonUtils.toObject(json, Entity.class);
-		} catch (Exception e) {
-			throw new SocialServiceException(e);
-		}
-	}
-
-	/**
-	 * deletes a community entity
-	 * 
-	 * @param communityId
-	 *            community ID
-	 * @param token
-	 *            client access token
-	 * @param entityId
-	 *            id of the entity to delete
-	 * @return true if operation gone fine, false otherwise
-	 * @throws SecurityException
-	 * @throws SocialServiceException
-	 */
-	public boolean deleteCommunityEntity(String communityId, String token,
-			String entityId) throws SecurityException, SocialServiceException {
-		try {
-			String json = RemoteConnector.deleteJSON(serviceUrl, COMMUNITY
-					+ communityId + COMMUNITY_CONTENTS + entityId, token);
-			return new Boolean(json);
-		} catch (Exception e) {
-			throw new SocialServiceException(e);
-		}
-	}
-
-	/**
-	 * updates a community entity
-	 * 
-	 * @param communityId
-	 *            community ID
-	 * @param token
-	 *            client access token
-	 * @param entity
-	 *            entity to update
-	 * @return true if operation gone fine, false otherwise
-	 * @throws SecurityException
-	 * @throws SocialServiceException
-	 */
-	public boolean updateCommunityEntity(String communityId, String token,
-			EntityRequest entity) throws SecurityException,
-			SocialServiceException {
-		try {
-			String json = RemoteConnector.putJSON(serviceUrl, COMMUNITY
-					+ communityId + COMMUNITY_CONTENTS + entity.getId(),
-					JsonUtils.toJSON(entity), token);
-			return new Boolean(json);
 		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
@@ -901,18 +822,18 @@ public class SocialService {
 	 * 
 	 * @param token
 	 *            client or user access token
-	 * @param conceptId
-	 *            id of the concept relative to new entity type
+	 * @param entityType
+	 *            entity type to create
 	 * @return the entity type created
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public EntityType createEntityType(String token, String conceptId)
+	public EntityType createEntityType(String token, EntityType entityType)
 			throws SecurityException, SocialServiceException {
 		try {
-			String json = RemoteConnector.postJSON(serviceUrl, TYPES, "",
-					token, Collections.<String, Object> singletonMap(
-							"conceptId", conceptId));
+			String json = RemoteConnector.postJSON(serviceUrl, TYPES,
+					JsonUtils.toJSON(entityType), token);
+			json = extractResultData(json);
 			return JsonUtils.toObject(json, EntityType.class);
 		} catch (RemoteException e) {
 			throw new SocialServiceException(e);
@@ -995,7 +916,21 @@ public class SocialService {
 
 	private String extractResultData(String response) {
 		Result result = JsonUtils.toObject(response, Result.class);
-		return JsonUtils.convert(result.getData());
+		return JsonUtils.toJSON(result.getData());
 	}
 
+	private Map<String, Object> convertLimit(Limit limit) {
+		Map<String, Object> parameters = null;
+		if (limit != null) {
+			parameters = new HashMap<String, Object>();
+			parameters.put("pagNum", limit.getPage());
+			parameters.put("pageSize", limit.getPageSize());
+			parameters.put("fromDate", limit.getFromDate());
+			parameters.put("toDate", limit.getToDate());
+			parameters.put("sortDirection", limit.getDirection());
+			parameters.put("sortList", limit.getSortList());
+
+		}
+		return parameters;
+	}
 }

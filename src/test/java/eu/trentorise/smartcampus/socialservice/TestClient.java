@@ -16,6 +16,8 @@
 package eu.trentorise.smartcampus.socialservice;
 
 import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
 import junit.framework.Assert;
 
@@ -140,114 +142,87 @@ public class TestClient {
 
 	@Test
 	public void userData() throws SecurityException, SocialServiceException {
-		Concepts concepts = socialService.getConceptByPrefix(
-				Constants.USER_AUTH_TOKEN, "concert", 1);
-		Concept test = concepts.getContent().get(0);
-		EntityType entityType = socialService.getEntityTypeByConceptId(
-				Constants.USER_AUTH_TOKEN, test.getId());
+		EntityType entityType = new EntityType("SocialService Client Type "
+				+ System.currentTimeMillis(), "image/png");
+		entityType = socialService.createEntityType(Constants.USER_AUTH_TOKEN,
+				entityType);
 
-		if (entityType == null) {
-			entityType = socialService.createEntityType(
-					Constants.USER_AUTH_TOKEN, test.getId());
-		}
+		List<Entity> entities = socialService.getUserEntities(
+				Constants.USER_AUTH_TOKEN, null);
+		int entitiesNumber = entities.size();
 
-		Entities entities = socialService.getUserEntities(
-				Constants.USER_AUTH_TOKEN, null, null, entityType.getId());
-		Assert.assertNotNull(entities);
-		int size = entities.getContent().size();
-
-		EntityRequest req = new EntityRequest();
-		req.setDescription("descr");
-		req.setName("name");
-		req.setTags(Collections.singletonList(test));
-		req.setTypeId(entityType.getId());
+		Entity e = new Entity();
+		e.setLocalId(UUID.randomUUID().toString());
+		e.setName("name");
+		e.setType(entityType.getId());
 		// create
-		Entity e = socialService.createUserEntity(Constants.USER_AUTH_TOKEN,
-				req);
+		e = socialService.createOrUpdateUserEntity(Constants.USER_AUTH_TOKEN,
+				Constants.APPID, e);
 		Assert.assertNotNull(e);
-		entities = socialService.getUserEntities(Constants.USER_AUTH_TOKEN,
-				null, null, entityType.getId());
-		Assert.assertEquals(size + 1, entities.getContent().size());
+		Assert.assertEquals(entitiesNumber + 1,
+				socialService.getUserEntities(Constants.USER_AUTH_TOKEN, null)
+						.size());
 
 		// update
-		req.setId(e.getEntityId());
-		req.setName("new name");
-		Assert.assertTrue(socialService.updateUserEntity(
-				Constants.USER_AUTH_TOKEN, req));
+		e.setName("new name");
+
+		Assert.assertNotNull(socialService.createOrUpdateUserEntity(
+				Constants.USER_AUTH_TOKEN, Constants.APPID, e));
 
 		// read
 		e = socialService.getUserEntity(Constants.USER_AUTH_TOKEN,
-				e.getEntityId());
-		Assert.assertEquals("new name", e.getTitle());
+				Constants.APPID, e.getLocalId());
+		Assert.assertEquals("new name", e.getName());
 
-		// delete
-		Assert.assertTrue(socialService.deleteUserEntity(
-				Constants.USER_AUTH_TOKEN, e.getEntityId()));
 	}
 
 	@Test
 	public void communityData() throws SecurityException,
 			SocialServiceException {
-		EntityRequest req = new EntityRequest();
-		req.setDescription("descr");
-		req.setName("name");
+		EntityType entityType = new EntityType("SocialService Client Type "
+				+ System.currentTimeMillis(), "image/png");
+		entityType = socialService.createEntityType(Constants.USER_AUTH_TOKEN,
+				entityType);
 
-		Community c = socialService.getCommunity(Constants.PRIVATE_COMMUNITY,
-				Constants.USER_AUTH_TOKEN);
-		if (c == null) {
-			c = new Community();
-			c.setName("MyCommunity");
-			c = socialService.createCommunity(Constants.PRIVATE_COMMUNITY, c,
-					Constants.CLIENT_AUTH_TOKEN);
-			Assert.assertNotNull(c);
-		}
+		Community c = new Community();
+		c.setName("MyCommunity " + System.currentTimeMillis());
+		c = socialService.createCommunity(Constants.APPID, c,
+				Constants.CLIENT_AUTH_TOKEN);
+		Assert.assertNotNull(c);
 
-		Concepts concepts = socialService.getConceptByPrefix(
-				Constants.USER_AUTH_TOKEN, "concert", 1);
-		Concept test = concepts.getContent().get(0);
-		EntityType entityType = socialService.getEntityTypeByConceptId(
-				Constants.USER_AUTH_TOKEN, test.getId());
+		List<Entity> entities = socialService.getCommunityEntities(c.getId(),
+				Constants.CLIENT_AUTH_TOKEN, null);
+		int entitiesNumber = entities.size();
 
-		if (entityType == null) {
-			entityType = socialService.createEntityType(
-					Constants.USER_AUTH_TOKEN, test.getId());
-		}
+		Entity e = new Entity();
+		e.setLocalId(UUID.randomUUID().toString());
+		e.setName("name");
+		e.setType(entityType.getId());
 
-		// Entities entities =
-		// socialService.getUserEntities(Constants.USER_AUTH_TOKEN, null, null,
-		// entityType.getId());
-		// Assert.assertNotNull(entities);
-		// int size = entities.getContent().size();
-		// Assert.assertEquals(0, size);
-
-		req.setTags(Collections.singletonList(test));
-		req.setTypeId(entityType.getId());
 		// create
-		Entity e = socialService.createCommunityEntity(
-				Constants.PRIVATE_COMMUNITY, Constants.CLIENT_AUTH_TOKEN, req);
+		e = socialService.createOrUpdateCommunityEntity(c.getId(),
+				Constants.CLIENT_AUTH_TOKEN, e);
 		Assert.assertNotNull(e);
-		// entities = socialService.getUserEntities(Constants.USER_AUTH_TOKEN,
-		// null, null, entityType.getId());
-		// Assert.assertEquals(size+1,entities.getContent().size());
+
+		entities = socialService.getCommunityEntities(c.getId(),
+				Constants.CLIENT_AUTH_TOKEN, null);
+		Assert.assertEquals(entitiesNumber + 1, entities.size());
 
 		// update
-		req.setId(e.getEntityId());
-		req.setName("new name");
-		Assert.assertTrue(socialService.updateCommunityEntity(
-				Constants.PRIVATE_COMMUNITY, Constants.CLIENT_AUTH_TOKEN, req));
+		e.setName("new name");
+		Assert.assertEquals(
+				"new name",
+				socialService.createOrUpdateCommunityEntity(c.getId(),
+						Constants.CLIENT_AUTH_TOKEN, e).getName());
 
 		// read
-		e = socialService.getCommunityEntity(Constants.PRIVATE_COMMUNITY,
-				Constants.CLIENT_AUTH_TOKEN, e.getEntityId());
-		Assert.assertEquals("new name", e.getTitle());
+		e = socialService.getCommunityEntity(c.getId(),
+				Constants.CLIENT_AUTH_TOKEN, e.getLocalId());
+		Assert.assertEquals("new name", e.getName());
 
-		// delete
-		Assert.assertTrue(socialService.deleteCommunityEntity(
-				Constants.PRIVATE_COMMUNITY, Constants.CLIENT_AUTH_TOKEN,
-				e.getEntityId()));
 		// delete community
-		Assert.assertTrue(socialService.deleteCommunity(c.getId(),
-				Constants.CLIENT_AUTH_TOKEN));
+		// Assert.assertTrue(socialService.deleteCommunity(c.getId(),
+		// Constants.APPID, Constants.CLIENT_AUTH_TOKEN));
 	}
 
 	@Test
