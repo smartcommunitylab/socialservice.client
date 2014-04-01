@@ -141,16 +141,16 @@ public class SocialService {
 
 	/**
 	 * retrieves informations about a specific group
-	 * 
-	 * @param groupId
-	 *            id of the group
 	 * @param token
 	 *            user access token
+	 * @param groupId
+	 *            id of the group
+	 * 
 	 * @return group informations
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public Group getUserGroup(String groupId, String token)
+	public Group getUserGroup(String token, String groupId)
 			throws SecurityException, SocialServiceException {
 		try {
 			String relativePath = String.format("user/group/%s", groupId);
@@ -165,19 +165,19 @@ public class SocialService {
 
 	/**
 	 * Add the specified users to a group
-	 * 
+	 * @param token
+	 *            user access token
 	 * @param groupId
 	 *            id of the group
 	 * @param userIds
 	 *            ids of the users to add
-	 * @param token
-	 *            user access token
+	 * 
 	 * @return true if the operation succeeded
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public boolean addUsersToGroup(String groupId, List<String> userIds,
-			String token) throws SecurityException, SocialServiceException {
+	public boolean addUsersToGroup(String token, String groupId,
+			List<String> userIds) throws SecurityException, SocialServiceException {
 		try {
 			String relativePath = String.format("user/group/%s/members",
 					groupId);
@@ -194,19 +194,19 @@ public class SocialService {
 
 	/**
 	 * Remove the specified users from a group
-	 * 
+	 * @param token
+	 *            user access token
 	 * @param groupId
 	 *            id of the group
 	 * @param userIds
 	 *            ids of the users to remove
-	 * @param token
-	 *            user access token
+	 * 
 	 * @return true if the operation succeeded
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public boolean removeUsersFromGroup(String groupId, List<String> userIds,
-			String token) throws SecurityException, SocialServiceException {
+	public boolean removeUsersFromGroup(String token, String groupId,
+			List<String> userIds) throws SecurityException, SocialServiceException {
 		try {
 			String relativePath = String.format("user/group/%s/members",
 					groupId);
@@ -223,16 +223,16 @@ public class SocialService {
 
 	/**
 	 * retrieves informations about a specific community
-	 * 
-	 * @param communityId
-	 *            community id
 	 * @param token
 	 *            user or client access token
+	 * @param communityId
+	 *            community id
+	 * 
 	 * @return community information
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public Community getCommunity(String communityId, String token)
+	public Community getCommunity(String token, String communityId)
 			throws SecurityException, SocialServiceException {
 		try {
 			String relativePath = String.format("community/%s", communityId);
@@ -337,19 +337,19 @@ public class SocialService {
 
 	/**
 	 * Create a new community data structure for the specified community id.
-	 * 
+	 * @param token
+	 *            client access token
 	 * @param appId
 	 *            appId manager of the community
 	 * @param community
 	 *            community data
-	 * @param token
-	 *            client access token
+	 * 
 	 * @return created {@link Community} instance
 	 * @throws SocialServiceException
 	 * @throws SecurityException
 	 */
-	public Community createCommunity(String appId, Community community,
-			String token) throws SocialServiceException, SecurityException {
+	public Community createCommunity(String token, String appId,
+			Community community) throws SocialServiceException, SecurityException {
 		try {
 			String relativePath = String.format("app/%s/community",
 					Constants.APPID);
@@ -364,19 +364,19 @@ public class SocialService {
 
 	/**
 	 * Deletes community data structure for the specified community id.
-	 * 
+	 * @param token
+	 *            client access token
 	 * @param communityId
 	 *            community id
 	 * @param appId
 	 *            appId manager of community
-	 * @param token
-	 *            client access token
+	 * 
 	 * @return true if the community has been deleted
 	 * @throws SocialServiceException
 	 * @throws SecurityException
 	 */
-	public boolean deleteCommunity(String communityId, String appId,
-			String token) throws SocialServiceException, SecurityException {
+	public boolean deleteCommunity(String token, String communityId,
+			String appId) throws SocialServiceException, SecurityException {
 		try {
 			String relativePath = String.format("app/%s/community/%s", appId,
 					communityId);
@@ -497,19 +497,19 @@ public class SocialService {
 
 	/**
 	 * retrieves the entities created by the community
-	 * 
-	 * @param communityId
-	 *            community ID
 	 * @param token
 	 *            client access token
+	 * @param communityId
+	 *            community ID
 	 * @param limit
 	 *            filter and pagination criteria
+	 * 
 	 * @return the {@link Entities} object with list of resources created by the
 	 *         community
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public List<Entity> getCommunityEntities(String communityId, String token,
+	public List<Entity> getCommunityEntities(String token, String communityId,
 			Limit limit) throws SecurityException, SocialServiceException {
 		try {
 			String relativePath = String.format("app/%s/community/%s/entity",
@@ -525,18 +525,18 @@ public class SocialService {
 
 	/**
 	 * retrieves the entity created by the community
-	 * 
-	 * @param communityId
-	 *            community ID
 	 * @param token
 	 *            client access token
+	 * @param communityId
+	 *            community ID
 	 * @param localId
 	 *            entity ID
+	 * 
 	 * @return the {@link Entity} object
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public Entity getCommunityEntity(String communityId, String token,
+	public Entity getCommunityEntity(String token, String communityId,
 			String localId) throws SecurityException, SocialServiceException {
 		try {
 			String relativePath = String.format(
@@ -553,19 +553,19 @@ public class SocialService {
 
 	/**
 	 * creates a community entity
-	 * 
-	 * @param communityId
-	 *            community ID
 	 * @param token
 	 *            client access token
+	 * @param communityId
+	 *            community ID
 	 * @param entity
 	 *            entity to create
+	 * 
 	 * @return {@link Entity} object representing entity created
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public Entity createOrUpdateCommunityEntity(String communityId,
-			String token, Entity entity) throws SecurityException,
+	public Entity createOrUpdateCommunityEntity(String token,
+			String communityId, Entity entity) throws SecurityException,
 			SocialServiceException {
 		try {
 			String relativePath = String.format("app/%s/community/%s/entity",
@@ -633,24 +633,24 @@ public class SocialService {
 
 	/**
 	 * retrieves the entities shared with the community
-	 * 
+	 * @param token
+	 *            client access token
 	 * @param appId
 	 *            application that manage community
 	 * @param communityId
 	 *            community ID
-	 * @param token
-	 *            client access token
-	 * @param shareVisibility
-	 *            {@link ShareVisibility} object defining the visibility filter
 	 * @param limit
 	 *            filter and pagination criteria
+	 * @param shareVisibility
+	 *            {@link ShareVisibility} object defining the visibility filter
+	 * 
 	 * @return the {@link Entities} object with list of resources shared with
 	 *         the community
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public List<Entity> getEntitiesSharedWithCommunity(String appId,
-			String communityId, String token, Limit limit)
+	public List<Entity> getEntitiesSharedWithCommunity(String token,
+			String appId, String communityId, Limit limit)
 			throws SecurityException, SocialServiceException {
 		try {
 			String relativePath = String.format("app/%s/community/%s/shared",
@@ -666,21 +666,21 @@ public class SocialService {
 
 	/**
 	 * retrieves the entity shared with the community
-	 * 
+	 * @param token
+	 *            client access token
 	 * @param appId
 	 *            application that manage community
 	 * @param communityId
 	 *            community ID
-	 * @param token
-	 *            client access token
 	 * @param localId
 	 *            entity ID
+	 * 
 	 * @return the {@link Entity} object
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public Entity getEntitySharedWithCommunity(String appId,
-			String communityId, String token, String localId)
+	public Entity getEntitySharedWithCommunity(String token,
+			String appId, String communityId, String localId)
 			throws SecurityException, SocialServiceException {
 		try {
 			String relativePath = String.format(
