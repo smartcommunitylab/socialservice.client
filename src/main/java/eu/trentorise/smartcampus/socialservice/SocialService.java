@@ -38,22 +38,13 @@ import eu.trentorise.smartcampus.socialservice.beans.Result;
  */
 public class SocialService {
 
-	private static final String GROUP = "user/group/";
-	private static final String GROUP_MEMBERS = "/members/";
-
-	private static final String USER_COMMUNITY = "user/community/";
-
 	private static final String COMMUNITY = "community/";
-
-	private static final String USER_CONTENTS = "user/entity/";
 
 	private static final String COMMUNITY_CONTENTS = "/entity/";
 
 	private static final String USER_SHARED = "user/shared/";
 
 	private static final String COMMUNITY_SHARED = "/shared/";
-
-	private static final String TYPES = "type/";
 
 	private String serviceUrl;
 
@@ -76,8 +67,9 @@ public class SocialService {
 	public List<Group> getUserGroups(String token) throws SecurityException,
 			SocialServiceException {
 		try {
-			String json = RemoteConnector.getJSON(serviceUrl, GROUP, token,
-					null);
+			String relativePath = "user/group";
+			String json = RemoteConnector.getJSON(serviceUrl, relativePath,
+					token, null);
 			return JsonUtils.toObjectList(extractResultData(json), Group.class);
 		} catch (RemoteException e) {
 			throw new SocialServiceException(e);
@@ -99,7 +91,8 @@ public class SocialService {
 		try {
 			Group group = new Group();
 			group.setName(name);
-			String json = RemoteConnector.postJSON(serviceUrl, GROUP,
+			String relativePath = "user/group";
+			String json = RemoteConnector.postJSON(serviceUrl, relativePath,
 					JsonUtils.toJSON(group), token);
 			json = extractResultData(json);
 			return JsonUtils.toObject(json, Group.class);
@@ -121,8 +114,9 @@ public class SocialService {
 	public Group updateUserGroup(String token, Group group)
 			throws SocialServiceException {
 		try {
-			String json = RemoteConnector.putJSON(serviceUrl,
-					GROUP + group.getId(), JsonUtils.toJSON(group), token);
+			String relativePath = String.format("user/group/%s", group.getId());
+			String json = RemoteConnector.putJSON(serviceUrl, relativePath,
+					JsonUtils.toJSON(group), token);
 			json = extractResultData(json);
 			return JsonUtils.toObject(json, Group.class);
 		} catch (Exception e) {
@@ -143,8 +137,9 @@ public class SocialService {
 	public boolean deleteUserGroup(String token, String groupId)
 			throws SocialServiceException {
 		try {
-			String json = RemoteConnector.deleteJSON(serviceUrl, GROUP
-					+ groupId, token);
+			String relativePath = String.format("user/group/%s", groupId);
+			String json = RemoteConnector.deleteJSON(serviceUrl, relativePath,
+					token);
 			json = extractResultData(json);
 			return new Boolean(json);
 		} catch (Exception e) {
@@ -166,7 +161,8 @@ public class SocialService {
 	public Group getUserGroup(String groupId, String token)
 			throws SecurityException, SocialServiceException {
 		try {
-			String json = RemoteConnector.getJSON(serviceUrl, GROUP + groupId,
+			String relativePath = String.format("user/group/%s", groupId);
+			String json = RemoteConnector.getJSON(serviceUrl, relativePath,
 					token, null);
 			json = extractResultData(json);
 			return JsonUtils.toObject(json, Group.class);
@@ -191,9 +187,11 @@ public class SocialService {
 	public boolean addUsersToGroup(String groupId, List<String> userIds,
 			String token) throws SecurityException, SocialServiceException {
 		try {
-			String json = RemoteConnector.putJSON(serviceUrl, GROUP + groupId
-					+ GROUP_MEMBERS, null, token, Collections
-					.<String, Object> singletonMap("userIds", userIds));
+			String relativePath = String.format("user/group/%s/members",
+					groupId);
+			String json = RemoteConnector.putJSON(serviceUrl, relativePath,
+					null, token, Collections.<String, Object> singletonMap(
+							"userIds", userIds));
 			json = extractResultData(json);
 			return new Boolean(json);
 		} catch (RemoteException e) {
@@ -218,9 +216,11 @@ public class SocialService {
 	public boolean removeUsersFromGroup(String groupId, List<String> userIds,
 			String token) throws SecurityException, SocialServiceException {
 		try {
-			String json = RemoteConnector.deleteJSON(serviceUrl, GROUP
-					+ groupId + GROUP_MEMBERS, token, Collections
-					.<String, Object> singletonMap("userIds", userIds));
+			String relativePath = String.format("user/group/%s/members",
+					groupId);
+			String json = RemoteConnector.deleteJSON(serviceUrl, relativePath,
+					token, Collections.<String, Object> singletonMap("userIds",
+							userIds));
 			json = extractResultData(json);
 			return new Boolean(json);
 		} catch (RemoteException e) {
@@ -243,8 +243,9 @@ public class SocialService {
 	public Community getCommunity(String communityId, String token)
 			throws SecurityException, SocialServiceException {
 		try {
-			String json = RemoteConnector.getJSON(serviceUrl, COMMUNITY
-					+ communityId, token, null);
+			String relativePath = String.format("community/%s", communityId);
+			String json = RemoteConnector.getJSON(serviceUrl, relativePath,
+					token, null);
 			json = extractResultData(json);
 			return JsonUtils.toObject(json, Community.class);
 		} catch (RemoteException e) {
@@ -284,8 +285,9 @@ public class SocialService {
 	public List<Community> getCommunities(String token)
 			throws SecurityException, SocialServiceException {
 		try {
-			String json = RemoteConnector.getJSON(serviceUrl, COMMUNITY, token,
-					null);
+			String relativePath = "community";
+			String json = RemoteConnector.getJSON(serviceUrl, relativePath,
+					token, null);
 			json = extractResultData(json);
 			return JsonUtils.toObjectList(json, Community.class);
 		} catch (RemoteException e) {
@@ -306,7 +308,7 @@ public class SocialService {
 	public boolean addUserToCommunity(String token, String communityId)
 			throws SocialServiceException, SecurityException {
 		try {
-			String relativePath = String.format("%s%s/member", USER_COMMUNITY,
+			String relativePath = String.format("user/community/%s/member",
 					communityId);
 			String json = RemoteConnector.putJSON(serviceUrl, relativePath,
 					null, token);
@@ -330,7 +332,7 @@ public class SocialService {
 	public boolean removeUserFromCommunity(String token, String communityId)
 			throws SocialServiceException, SecurityException {
 		try {
-			String relativePath = String.format("%s%s/member", USER_COMMUNITY,
+			String relativePath = String.format("user/community/%s/member",
 					communityId);
 			String json = RemoteConnector.deleteJSON(serviceUrl, relativePath,
 					token);
@@ -357,8 +359,8 @@ public class SocialService {
 	public Community createCommunity(String appId, Community community,
 			String token) throws SocialServiceException, SecurityException {
 		try {
-			String relativePath = String.format("app/%s/%s", Constants.APPID,
-					COMMUNITY);
+			String relativePath = String.format("app/%s/community",
+					Constants.APPID);
 			String json = RemoteConnector.postJSON(serviceUrl, relativePath,
 					JsonUtils.toJSON(community), token);
 			json = extractResultData(json);
@@ -384,8 +386,8 @@ public class SocialService {
 	public boolean deleteCommunity(String communityId, String appId,
 			String token) throws SocialServiceException, SecurityException {
 		try {
-			String relativePath = String.format("app/%s/%s%s", appId,
-					COMMUNITY, communityId);
+			String relativePath = String.format("app/%s/community/%s", appId,
+					communityId);
 			String json = RemoteConnector.deleteJSON(serviceUrl, relativePath,
 					token);
 			json = extractResultData(json);
@@ -409,8 +411,8 @@ public class SocialService {
 	public List<Entity> getUserEntities(String token, Limit limit)
 			throws SecurityException, SocialServiceException {
 		try {
-
-			String json = RemoteConnector.getJSON(serviceUrl, USER_CONTENTS,
+			String relativePath = "user/entity";
+			String json = RemoteConnector.getJSON(serviceUrl, relativePath,
 					token, convertLimit(limit));
 			json = extractResultData(json);
 			return JsonUtils.toObjectList(json, Entity.class);
@@ -831,7 +833,8 @@ public class SocialService {
 	public EntityType createEntityType(String token, EntityType entityType)
 			throws SecurityException, SocialServiceException {
 		try {
-			String json = RemoteConnector.postJSON(serviceUrl, TYPES,
+			String relativePath = "type";
+			String json = RemoteConnector.postJSON(serviceUrl, relativePath,
 					JsonUtils.toJSON(entityType), token);
 			json = extractResultData(json);
 			return JsonUtils.toObject(json, EntityType.class);
