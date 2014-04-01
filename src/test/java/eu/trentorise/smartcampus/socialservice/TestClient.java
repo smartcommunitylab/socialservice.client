@@ -15,6 +15,7 @@
  ******************************************************************************/
 package eu.trentorise.smartcampus.socialservice;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -28,6 +29,7 @@ import eu.trentorise.smartcampus.socialservice.beans.Community;
 import eu.trentorise.smartcampus.socialservice.beans.Entity;
 import eu.trentorise.smartcampus.socialservice.beans.EntityType;
 import eu.trentorise.smartcampus.socialservice.beans.Group;
+import eu.trentorise.smartcampus.socialservice.beans.Visibility;
 
 public class TestClient {
 
@@ -36,15 +38,6 @@ public class TestClient {
 	@Before
 	public void init() {
 		socialService = new SocialService("http://localhost:8080/core.social");
-		try {
-
-			// socialService.removeUserFromCommunity(Constants.USER_AUTH_TOKEN,
-			// Constants.SC_COMMUNITY_ID);
-			// socialService.deleteCommunity(Constants.PRIVATE_COMMUNITY,
-			// Constants.APPID, Constants.CLIENT_AUTH_TOKEN);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 	@Test
@@ -221,6 +214,7 @@ public class TestClient {
 		Assert.assertEquals("new name", e.getName());
 
 		// delete community
+		// TODO fix delete community with created entity throws Exception
 		// Assert.assertTrue(socialService.deleteCommunity(c.getId(),
 		// Constants.APPID, Constants.CLIENT_AUTH_TOKEN));
 	}
@@ -228,131 +222,130 @@ public class TestClient {
 	@Test
 	public void userSharing() throws SecurityException, SocialServiceException {
 
-		ShareVisibility visibility = new ShareVisibility();
-		visibility.setAllCommunities(true);
-		visibility.setAllKnownCommunities(true);
-		visibility.setAllKnownUsers(true);
-		visibility.setAllUsers(true);
+		Community c = new Community();
+		c.setName("SocialService Client Community "
+				+ System.currentTimeMillis());
 
-		Entities entities = socialService.getEntitiesSharedWithUser(
-				Constants.USER_AUTH_TOKEN, visibility, 0, 10, null);
+		c = socialService.createCommunity(Constants.APPID, c,
+				Constants.CLIENT_AUTH_TOKEN);
+		Assert.assertNotNull(c.getId());
+
+		List<Entity> entities = socialService.getUserEntities(
+				Constants.USER_AUTH_TOKEN, null);
 		Assert.assertNotNull(entities);
+		int size = entities.size();
 
-		Concepts concepts = socialService.getConceptByPrefix(
-				Constants.USER_AUTH_TOKEN, "concert", 1);
-		Concept test = concepts.getContent().get(0);
-		EntityType entityType = socialService.getEntityTypeByConceptId(
-				Constants.USER_AUTH_TOKEN, test.getId());
+		int communitySharingSize = socialService
+				.getEntitiesSharedWithCommunity(Constants.APPID, c.getId(),
+						Constants.CLIENT_AUTH_TOKEN, null).size();
 
-		if (entityType == null) {
-			entityType = socialService.createEntityType(
-					Constants.USER_AUTH_TOKEN, test.getId());
-		}
-		EntityRequest req = new EntityRequest();
-		req.setDescription("descr");
-		req.setName("name");
-		req.setTags(Collections.singletonList(test));
-		req.setTypeId(entityType.getId());
+		EntityType entityType = new EntityType("SocialService Client Type "
+				+ System.currentTimeMillis(), "image/png");
+		entityType = socialService.createEntityType(Constants.USER_AUTH_TOKEN,
+				entityType);
+
+		String localId = UUID.randomUUID().toString();
+		String entityName = "SocialService Client Entity "
+				+ System.currentTimeMillis();
+		Entity req = new Entity();
+		req.setName(entityName);
+		req.setLocalId(localId);
+		req.setType(entityType.getId());
+		req.setVisibility(new Visibility(null, Arrays.asList(c.getId()), null));
+
 		// create
-		Entity e = socialService.createUserEntity(Constants.USER_AUTH_TOKEN,
-				req);
+		req = socialService.createOrUpdateUserEntity(Constants.USER_AUTH_TOKEN,
+				Constants.APPID, req);
 
-		// share
-		Assert.assertTrue(socialService.shareUserEntity(
-				Constants.USER_AUTH_TOKEN, e.getEntityId(), visibility));
-		e = socialService.getUserEntity(Constants.USER_AUTH_TOKEN,
-				e.getEntityId());
-		Assert.assertTrue(e.getVisibility().isAllKnownUsers());
-		Assert.assertTrue(e.getVisibility().isAllUsers());
-		Assert.assertEquals(0, e.getVisibility().getCommunityIds().size());
-		Assert.assertTrue(e.getVisibility().getGroupIds().isEmpty());
-		Assert.assertTrue(e.getVisibility().getUserIds().isEmpty());
+		Assert.assertEquals(size + 1,
+				socialService.getUserEntities(Constants.USER_AUTH_TOKEN, null)
+						.size());
+		Assert.assertEquals(
+				entityName,
+				socialService.getUserEntity(Constants.USER_AUTH_TOKEN,
+						Constants.APPID, localId).getName());
+		Assert.assertNull(socialService.getUserEntity(
+				Constants.USER_AUTH_TOKEN, Constants.APPID, "dkfjskdfsjdlfj"));
 
-		// unshare
-		socialService.unshareUserEntity(Constants.USER_AUTH_TOKEN,
-				e.getEntityId());
-		e = socialService.getUserEntity(Constants.USER_AUTH_TOKEN,
-				e.getEntityId());
-		Assert.assertFalse(e.getVisibility().isAllKnownUsers());
-		Assert.assertFalse(e.getVisibility().isAllUsers());
-		Assert.assertEquals(0, e.getVisibility().getCommunityIds().size());
-		Assert.assertTrue(e.getVisibility().getGroupIds().isEmpty());
-		Assert.assertTrue(e.getVisibility().getUserIds().isEmpty());
+		Assert.assertEquals(
+				communitySharingSize + 1,
+				socialService.getEntitiesSharedWithCommunity(Constants.APPID,
+						c.getId(), Constants.CLIENT_AUTH_TOKEN, null).size());
 
-		socialService.deleteUserEntity(Constants.USER_AUTH_TOKEN,
-				e.getEntityId());
+		Assert.assertEquals(
+				entityName,
+				socialService.getEntitySharedWithCommunity(Constants.APPID,
+						c.getId(), Constants.CLIENT_AUTH_TOKEN, localId)
+						.getName());
+
 	}
 
 	@Test
 	public void communitySharing() throws SecurityException,
 			SocialServiceException {
 
-		Community c = socialService.getCommunity(Constants.PRIVATE_COMMUNITY,
-				Constants.USER_AUTH_TOKEN);
-		if (c == null) {
-			c = new Community();
-			c.setName("MyCommunity");
-			c = socialService.createCommunity(Constants.PRIVATE_COMMUNITY, c,
-					Constants.CLIENT_AUTH_TOKEN);
-			Assert.assertNotNull(c);
-		}
+		Community c = new Community();
+		c.setName("SocialService Client Community "
+				+ System.currentTimeMillis());
+		c = socialService.createCommunity(Constants.APPID, c,
+				Constants.CLIENT_AUTH_TOKEN);
+		Assert.assertNotNull(c.getId());
 
-		ShareVisibility visibility = new ShareVisibility();
-		visibility.setAllCommunities(true);
-		visibility.setAllKnownCommunities(true);
-		visibility.setAllKnownUsers(true);
-		visibility.setAllUsers(true);
+		EntityType entityType = new EntityType("SocialService Client Type "
+				+ System.currentTimeMillis(), "image/jpg");
+		entityType = socialService.createEntityType(Constants.USER_AUTH_TOKEN,
+				entityType);
+		Assert.assertNotNull(entityType);
 
-		// Entities entities =
-		// socialService.getEntitiesSharedWithUser(Constants.USER_AUTH_TOKEN,
-		// visibility, 0, 10, null);
-		// Assert.assertNotNull(entities);
+		String localId = UUID.randomUUID().toString();
+		String entityName = "SocialService Client Entity "
+				+ System.currentTimeMillis();
+		Entity req = new Entity();
 
-		Concepts concepts = socialService.getConceptByPrefix(
-				Constants.CLIENT_AUTH_TOKEN, "concert", 1);
-		Concept test = concepts.getContent().get(0);
-		EntityType entityType = socialService.getEntityTypeByConceptId(
-				Constants.CLIENT_AUTH_TOKEN, test.getId());
+		req.setName(entityName);
+		req.setLocalId(localId);
+		req.setType(entityType.getId());
+		req.setVisibility(new Visibility(Arrays.asList("1"), null, null));
 
-		if (entityType == null) {
-			entityType = socialService.createEntityType(
-					Constants.CLIENT_AUTH_TOKEN, test.getId());
-		}
-		EntityRequest req = new EntityRequest();
-		req.setDescription("descr");
-		req.setName("name");
-		req.setTags(Collections.singletonList(test));
-		req.setTypeId(entityType.getId());
-		// create
-		Entity e = socialService.createCommunityEntity(
-				Constants.PRIVATE_COMMUNITY, Constants.CLIENT_AUTH_TOKEN, req);
+		int sharedSize = socialService.getEntitiesSharedWithUser(
+				Constants.USER_AUTH_TOKEN, null).size();
 
-		// share
-		Assert.assertTrue(socialService.shareCommunityEntity(
-				Constants.PRIVATE_COMMUNITY, Constants.CLIENT_AUTH_TOKEN,
-				e.getEntityId(), visibility));
-		e = socialService.getCommunityEntity(Constants.PRIVATE_COMMUNITY,
-				Constants.CLIENT_AUTH_TOKEN, e.getEntityId());
-		Assert.assertNotNull(e.getVisibility());
-		Assert.assertTrue(e.getVisibility().isAllKnownUsers());
-		Assert.assertTrue(e.getVisibility().isAllUsers());
-		Assert.assertEquals(0, e.getVisibility().getCommunityIds().size());
-		Assert.assertTrue(e.getVisibility().getGroupIds().isEmpty());
-		Assert.assertTrue(e.getVisibility().getUserIds().isEmpty());
+		int size = socialService.getCommunityEntities(c.getId(),
+				Constants.CLIENT_AUTH_TOKEN, null).size();
+		req = socialService.createOrUpdateCommunityEntity(c.getId(),
+				Constants.CLIENT_AUTH_TOKEN, req);
 
-		// unshare
-		socialService.unshareCommnunityEntity(Constants.PRIVATE_COMMUNITY,
-				Constants.CLIENT_AUTH_TOKEN, e.getEntityId());
-		e = socialService.getCommunityEntity(Constants.PRIVATE_COMMUNITY,
-				Constants.CLIENT_AUTH_TOKEN, e.getEntityId());
-		Assert.assertFalse(e.getVisibility().isAllKnownUsers());
-		Assert.assertFalse(e.getVisibility().isAllUsers());
-		Assert.assertEquals(0, e.getVisibility().getCommunityIds().size());
-		Assert.assertTrue(e.getVisibility().getGroupIds().isEmpty());
-		Assert.assertTrue(e.getVisibility().getUserIds().isEmpty());
+		Assert.assertEquals(sharedSize + 1, socialService
+				.getEntitiesSharedWithUser(Constants.USER_AUTH_TOKEN, null)
+				.size());
 
-		socialService.deleteCommunityEntity(Constants.PRIVATE_COMMUNITY,
-				Constants.CLIENT_AUTH_TOKEN, e.getEntityId());
+		Assert.assertEquals(
+				entityName,
+				socialService.getEntitySharedWithUser(
+						Constants.USER_AUTH_TOKEN, Constants.APPID, localId)
+						.getName());
+
+		req.setVisibility(new Visibility());
+		req = socialService.createOrUpdateCommunityEntity(c.getId(),
+				Constants.CLIENT_AUTH_TOKEN, req);
+
+		Assert.assertEquals(sharedSize, socialService
+				.getEntitiesSharedWithUser(Constants.USER_AUTH_TOKEN, null)
+				.size());
+
+		Assert.assertNull(socialService.getEntitySharedWithUser(
+				Constants.USER_AUTH_TOKEN, Constants.APPID, localId));
+		Assert.assertEquals(
+				0,
+				socialService.getEntitiesSharedWithCommunity(Constants.APPID,
+						c.getId(), Constants.CLIENT_AUTH_TOKEN, null).size());
+
+		Assert.assertEquals(
+				size + 1,
+				socialService.getCommunityEntities(c.getId(),
+						Constants.CLIENT_AUTH_TOKEN, null).size());
+		Assert.assertNotNull(socialService.getCommunityEntity(c.getId(),
+				Constants.CLIENT_AUTH_TOKEN, localId));
 	}
 
 	@Test
