@@ -37,7 +37,7 @@ public class TestClient {
 
 	@Before
 	public void init() {
-		socialService = new SocialService("http://localhost:8080/core.social");
+		socialService = new SocialService(Constants.SERVICE_ENDPOINT);
 	}
 
 	@Test
