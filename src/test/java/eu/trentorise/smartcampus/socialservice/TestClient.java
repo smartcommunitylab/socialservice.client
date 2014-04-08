@@ -210,8 +210,8 @@ public class TestClient {
 		e.setName("new name by app");
 
 		Assert.assertNotNull(socialService.updateUserEntityByApp(
-				Constants.USER_AUTH_TOKEN, Constants.APPID, Constants.OWNER_ID,
-				e));
+				Constants.CLIENT_AUTH_TOKEN, Constants.APPID,
+				Constants.OWNER_ID, e));
 
 		e = socialService.getUserEntity(Constants.USER_AUTH_TOKEN,
 				Constants.APPID, e.getLocalId());
@@ -330,6 +330,13 @@ public class TestClient {
 						Constants.CLIENT_AUTH_TOKEN, Constants.APPID,
 						c.getId(), localId).getName());
 
+		req.setUri("dummie");
+		try {
+			socialService.updateUserEntityByUser(Constants.USER_AUTH_TOKEN,
+					Constants.APPID, req);
+			Assert.fail("IllegalArgumentException not thrown");
+		} catch (IllegalArgumentException e) {
+		}
 	}
 
 	@Test

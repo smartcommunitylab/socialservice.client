@@ -22,7 +22,6 @@ import java.util.Map;
 
 import eu.trentorise.smartcampus.network.JsonUtils;
 import eu.trentorise.smartcampus.network.RemoteConnector;
-import eu.trentorise.smartcampus.network.RemoteException;
 import eu.trentorise.smartcampus.socialservice.beans.Community;
 import eu.trentorise.smartcampus.socialservice.beans.Entity;
 import eu.trentorise.smartcampus.socialservice.beans.EntityInfo;
@@ -64,7 +63,11 @@ public class SocialService {
 			String json = RemoteConnector.getJSON(serviceUrl, relativePath,
 					token, null);
 			return JsonUtils.toObjectList(extractResultData(json), Group.class);
-		} catch (RemoteException e) {
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
 	}
@@ -89,6 +92,10 @@ public class SocialService {
 					JsonUtils.toJSON(group), token);
 			json = extractResultData(json);
 			return JsonUtils.toObject(json, Group.class);
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
 		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
@@ -112,6 +119,10 @@ public class SocialService {
 					JsonUtils.toJSON(group), token);
 			json = extractResultData(json);
 			return JsonUtils.toObject(json, Group.class);
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
 		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
@@ -135,6 +146,10 @@ public class SocialService {
 					token);
 			json = extractResultData(json);
 			return new Boolean(json);
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
 		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
@@ -160,7 +175,11 @@ public class SocialService {
 					token, null);
 			json = extractResultData(json);
 			return JsonUtils.toObject(json, Group.class);
-		} catch (RemoteException e) {
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
 	}
@@ -190,7 +209,11 @@ public class SocialService {
 							"userIds", userIds));
 			json = extractResultData(json);
 			return new Boolean(json);
-		} catch (RemoteException e) {
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
 
@@ -221,7 +244,11 @@ public class SocialService {
 							userIds));
 			json = extractResultData(json);
 			return new Boolean(json);
-		} catch (RemoteException e) {
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
 
@@ -247,7 +274,11 @@ public class SocialService {
 					token, null);
 			json = extractResultData(json);
 			return JsonUtils.toObject(json, Community.class);
-		} catch (RemoteException e) {
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
 	}
@@ -289,7 +320,11 @@ public class SocialService {
 					token, null);
 			json = extractResultData(json);
 			return JsonUtils.toObjectList(json, Community.class);
-		} catch (RemoteException e) {
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
 	}
@@ -313,7 +348,11 @@ public class SocialService {
 					null, token);
 			json = extractResultData(json);
 			return new Boolean(json);
-		} catch (RemoteException e) {
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
 	}
@@ -337,7 +376,11 @@ public class SocialService {
 					token);
 			json = extractResultData(json);
 			return new Boolean(json);
-		} catch (RemoteException e) {
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
 	}
@@ -366,7 +409,11 @@ public class SocialService {
 					JsonUtils.toJSON(community), token);
 			json = extractResultData(json);
 			return JsonUtils.toObject(json, Community.class);
-		} catch (RemoteException e) {
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
 	}
@@ -394,7 +441,11 @@ public class SocialService {
 					token);
 			json = extractResultData(json);
 			return new Boolean(json);
-		} catch (RemoteException e) {
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
 	}
@@ -418,7 +469,11 @@ public class SocialService {
 					token, convertLimit(limit));
 			json = extractResultData(json);
 			return JsonUtils.toObjectList(json, Entity.class);
-		} catch (RemoteException e) {
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
 	}
@@ -445,7 +500,11 @@ public class SocialService {
 					token);
 			json = extractResultData(json);
 			return JsonUtils.toObject(json, Entity.class);
-		} catch (RemoteException e) {
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
 	}
@@ -477,6 +536,10 @@ public class SocialService {
 					JsonUtils.toJSON(entity), token);
 			json = extractResultData(json);
 			return JsonUtils.toObject(json, Entity.class);
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
 		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
@@ -505,6 +568,10 @@ public class SocialService {
 					JsonUtils.toJSON(entity), token);
 			json = extractResultData(json);
 			return JsonUtils.toObject(json, Entity.class);
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
 		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
@@ -538,6 +605,10 @@ public class SocialService {
 					JsonUtils.toJSON(entity), token);
 			json = extractResultData(json);
 			return JsonUtils.toObject(json, Entity.class);
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
 		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
@@ -565,6 +636,10 @@ public class SocialService {
 					token);
 			json = extractResultData(json);
 			return JsonUtils.toObject(json, EntityInfo.class);
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
 		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
@@ -621,7 +696,11 @@ public class SocialService {
 					token, convertLimit(limit));
 			json = extractResultData(json);
 			return JsonUtils.toObjectList(json, Entity.class);
-		} catch (RemoteException e) {
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
 	}
@@ -650,7 +729,11 @@ public class SocialService {
 					token);
 			json = extractResultData(json);
 			return JsonUtils.toObject(json, Entity.class);
-		} catch (RemoteException e) {
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
 	}
@@ -679,6 +762,10 @@ public class SocialService {
 					JsonUtils.toJSON(entity), token);
 			json = extractResultData(json);
 			return JsonUtils.toObject(json, Entity.class);
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
 		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
@@ -704,7 +791,11 @@ public class SocialService {
 					token, convertLimit(limit));
 			json = extractResultData(json);
 			return JsonUtils.toObjectList(json, Entity.class);
-		} catch (RemoteException e) {
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
 	}
@@ -731,7 +822,11 @@ public class SocialService {
 					token);
 			json = extractResultData(json);
 			return JsonUtils.toObject(json, Entity.class);
-		} catch (RemoteException e) {
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
 	}
@@ -763,7 +858,11 @@ public class SocialService {
 					token, convertLimit(limit));
 			json = extractResultData(json);
 			return JsonUtils.toObjectList(json, Entity.class);
-		} catch (RemoteException e) {
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
 	}
@@ -795,7 +894,11 @@ public class SocialService {
 					token);
 			json = extractResultData(json);
 			return JsonUtils.toObject(json, Entity.class);
-		} catch (RemoteException e) {
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
 	}
@@ -819,7 +922,11 @@ public class SocialService {
 					JsonUtils.toJSON(entityType), token);
 			json = extractResultData(json);
 			return JsonUtils.toObject(json, EntityType.class);
-		} catch (RemoteException e) {
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
 	}
@@ -843,7 +950,11 @@ public class SocialService {
 					token, null);
 			json = extractResultData(json);
 			return JsonUtils.toObject(json, EntityType.class);
-		} catch (RemoteException e) {
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
 	}
@@ -867,7 +978,11 @@ public class SocialService {
 					token, convertLimit(limit));
 			json = extractResultData(json);
 			return JsonUtils.toObjectList(json, EntityType.class);
-		} catch (RemoteException e) {
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
 	}

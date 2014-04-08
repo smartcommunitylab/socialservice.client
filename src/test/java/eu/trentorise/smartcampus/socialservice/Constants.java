@@ -25,9 +25,8 @@ public class Constants {
 	static final String USER_AUTH_TOKEN = "";
 	static final String CLIENT_AUTH_TOKEN = "";
 	static final String APPID = "space1";
-	static final long CREATOR_ID = -1l;
+	static final String OWNER_ID = "1";
 	static final String SC_COMMUNITY_ID = "Smartcampus";
 	public static final String OTHER_USER_SOCIAL_ID = "1306";
 	public static final String PRIVATE_COMMUNITY = "mycomm";
-
 }
