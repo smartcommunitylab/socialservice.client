@@ -25,6 +25,7 @@ import eu.trentorise.smartcampus.network.RemoteConnector;
 import eu.trentorise.smartcampus.network.RemoteException;
 import eu.trentorise.smartcampus.socialservice.beans.Community;
 import eu.trentorise.smartcampus.socialservice.beans.Entity;
+import eu.trentorise.smartcampus.socialservice.beans.EntityInfo;
 import eu.trentorise.smartcampus.socialservice.beans.EntityType;
 import eu.trentorise.smartcampus.socialservice.beans.Group;
 import eu.trentorise.smartcampus.socialservice.beans.Limit;
@@ -141,6 +142,7 @@ public class SocialService {
 
 	/**
 	 * retrieves informations about a specific group
+	 * 
 	 * @param token
 	 *            user access token
 	 * @param groupId
@@ -165,6 +167,7 @@ public class SocialService {
 
 	/**
 	 * Add the specified users to a group
+	 * 
 	 * @param token
 	 *            user access token
 	 * @param groupId
@@ -177,7 +180,8 @@ public class SocialService {
 	 * @throws SocialServiceException
 	 */
 	public boolean addUsersToGroup(String token, String groupId,
-			List<String> userIds) throws SecurityException, SocialServiceException {
+			List<String> userIds) throws SecurityException,
+			SocialServiceException {
 		try {
 			String relativePath = String.format("user/group/%s/members",
 					groupId);
@@ -194,6 +198,7 @@ public class SocialService {
 
 	/**
 	 * Remove the specified users from a group
+	 * 
 	 * @param token
 	 *            user access token
 	 * @param groupId
@@ -206,7 +211,8 @@ public class SocialService {
 	 * @throws SocialServiceException
 	 */
 	public boolean removeUsersFromGroup(String token, String groupId,
-			List<String> userIds) throws SecurityException, SocialServiceException {
+			List<String> userIds) throws SecurityException,
+			SocialServiceException {
 		try {
 			String relativePath = String.format("user/group/%s/members",
 					groupId);
@@ -223,6 +229,7 @@ public class SocialService {
 
 	/**
 	 * retrieves informations about a specific community
+	 * 
 	 * @param token
 	 *            user or client access token
 	 * @param communityId
@@ -337,6 +344,7 @@ public class SocialService {
 
 	/**
 	 * Create a new community data structure for the specified community id.
+	 * 
 	 * @param token
 	 *            client access token
 	 * @param appId
@@ -349,7 +357,8 @@ public class SocialService {
 	 * @throws SecurityException
 	 */
 	public Community createCommunity(String token, String appId,
-			Community community) throws SocialServiceException, SecurityException {
+			Community community) throws SocialServiceException,
+			SecurityException {
 		try {
 			String relativePath = String.format("app/%s/community",
 					Constants.APPID);
@@ -364,6 +373,7 @@ public class SocialService {
 
 	/**
 	 * Deletes community data structure for the specified community id.
+	 * 
 	 * @param token
 	 *            client access token
 	 * @param communityId
@@ -419,7 +429,7 @@ public class SocialService {
 	 * @param token
 	 *            user access token
 	 * @param appId
-	 *            application social space containing the entity
+	 *            social application space containing the entity
 	 * @param localId
 	 *            entity ID
 	 * @return the {@link Entity} object
@@ -441,27 +451,120 @@ public class SocialService {
 	}
 
 	/**
-	 * creates or update a user entity. Use this method to change visibility of
-	 * an entity (share/unshare)
+	 * creates or update a user entity.
+	 * 
+	 * Method reserved to CLIENT
 	 * 
 	 * @param token
-	 *            user access token
+	 *            client access token
 	 * @param appId
 	 *            social application space in which create the entity
+	 * @param userId
+	 *            user that will own the entity
 	 * @param entity
 	 *            entity to create
 	 * @return {@link Entity} object representing entity created
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public Entity createOrUpdateUserEntity(String token, String appId,
-			Entity entity) throws SecurityException, SocialServiceException {
+	public Entity createOrUpdateUserEntityByApp(String token, String appId,
+			String userId, Entity entity) throws SecurityException,
+			SocialServiceException {
 		try {
-			String relativePath = String.format("user/%s/entity", appId);
+			String relativePath = String.format("app/%s/%s/entity/create",
+					appId, userId);
 			String json = RemoteConnector.postJSON(serviceUrl, relativePath,
 					JsonUtils.toJSON(entity), token);
 			json = extractResultData(json);
 			return JsonUtils.toObject(json, Entity.class);
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * updates existing entity
+	 * 
+	 * Method reserved to USER
+	 * 
+	 * @param token
+	 *            user access token
+	 * @param appId
+	 *            social application space containing the entity
+	 * @param entity
+	 *            new entity fields value
+	 * @return
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public Entity updateUserEntityByUser(String token, String appId,
+			Entity entity) throws SecurityException, SocialServiceException {
+		try {
+			String relativePath = String.format("user/%s/entity/update", appId);
+			String json = RemoteConnector.putJSON(serviceUrl, relativePath,
+					JsonUtils.toJSON(entity), token);
+			json = extractResultData(json);
+			return JsonUtils.toObject(json, Entity.class);
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * updates existing entity
+	 * 
+	 * Method reserved to CLIENT
+	 * 
+	 * @param token
+	 *            client access token
+	 * @param appId
+	 *            social application space containing the entity
+	 * @param userId
+	 *            id of entity owner
+	 * @param entity
+	 *            new entity fields value
+	 * @return
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+
+	public Entity updateUserEntityByApp(String token, String appId,
+			String userId, Entity entity) throws SecurityException,
+			SocialServiceException {
+		try {
+			String relativePath = String.format("app/%s/%s/entity/update",
+					appId, userId);
+			String json = RemoteConnector.putJSON(serviceUrl, relativePath,
+					JsonUtils.toJSON(entity), token);
+			json = extractResultData(json);
+			return JsonUtils.toObject(json, Entity.class);
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * Retrieves information about entity
+	 * 
+	 * Method reserved to CLIENT
+	 * 
+	 * @param token
+	 *            client access token
+	 * @param entityUri
+	 *            entity URI
+	 * @return information about entity like ownership
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public EntityInfo getEntityInfoByApp(String token, String entityUri)
+			throws SecurityException, SocialServiceException {
+		try {
+			String relativePath = String
+					.format("app/entity/%s/info", entityUri);
+			String json = RemoteConnector.getJSON(serviceUrl, relativePath,
+					token);
+			json = extractResultData(json);
+			return JsonUtils.toObject(json, EntityInfo.class);
 		} catch (Exception e) {
 			throw new SocialServiceException(e);
 		}
@@ -473,7 +576,7 @@ public class SocialService {
 	 * @param token
 	 *            user access token
 	 * @param appId
-	 *            application social space containing the entity
+	 *            social application space containing the entity
 	 * @param localId
 	 *            id of the entity to delete
 	 * @return true if operation gone fine, false otherwise
@@ -494,9 +597,9 @@ public class SocialService {
 	// throw new SocialServiceException(e);
 	// }
 	// }
-
 	/**
 	 * retrieves the entities created by the community
+	 * 
 	 * @param token
 	 *            client access token
 	 * @param communityId
@@ -525,6 +628,7 @@ public class SocialService {
 
 	/**
 	 * retrieves the entity created by the community
+	 * 
 	 * @param token
 	 *            client access token
 	 * @param communityId
@@ -553,6 +657,7 @@ public class SocialService {
 
 	/**
 	 * creates a community entity
+	 * 
 	 * @param token
 	 *            client access token
 	 * @param communityId
@@ -610,7 +715,7 @@ public class SocialService {
 	 * @param token
 	 *            user access token
 	 * @param appId
-	 *            social application space containing entity
+	 *            social application space containing the entity
 	 * @param localId
 	 *            entity ID
 	 * @return the {@link Entity} object
@@ -633,6 +738,7 @@ public class SocialService {
 
 	/**
 	 * retrieves the entities shared with the community
+	 * 
 	 * @param token
 	 *            client access token
 	 * @param appId
@@ -641,8 +747,6 @@ public class SocialService {
 	 *            community ID
 	 * @param limit
 	 *            filter and pagination criteria
-	 * @param shareVisibility
-	 *            {@link ShareVisibility} object defining the visibility filter
 	 * 
 	 * @return the {@link Entities} object with list of resources shared with
 	 *         the community
@@ -666,6 +770,7 @@ public class SocialService {
 
 	/**
 	 * retrieves the entity shared with the community
+	 * 
 	 * @param token
 	 *            client access token
 	 * @param appId
@@ -679,9 +784,9 @@ public class SocialService {
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public Entity getEntitySharedWithCommunity(String token,
-			String appId, String communityId, String localId)
-			throws SecurityException, SocialServiceException {
+	public Entity getEntitySharedWithCommunity(String token, String appId,
+			String communityId, String localId) throws SecurityException,
+			SocialServiceException {
 		try {
 			String relativePath = String.format(
 					"app/%s/community/%s/shared/%s", appId, communityId,
