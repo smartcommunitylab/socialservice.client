@@ -131,7 +131,7 @@ public class TestClient {
 				socialService.getCommunities(Constants.USER_AUTH_TOKEN).size());
 
 		Assert.assertTrue(socialService.deleteCommunity(
-				Constants.CLIENT_AUTH_TOKEN, newC.getId(), Constants.APPID));
+				Constants.CLIENT_AUTH_TOKEN, Constants.APPID, newC.getId()));
 	}
 
 	@Test
@@ -217,6 +217,10 @@ public class TestClient {
 				Constants.APPID, e.getLocalId());
 		Assert.assertEquals("new name by app", e.getName());
 
+		// delete
+		Assert.assertTrue(socialService.deleteEntityByUser(
+				Constants.USER_AUTH_TOKEN, Constants.APPID, e.getLocalId()));
+
 	}
 
 	@Test
@@ -263,10 +267,31 @@ public class TestClient {
 				c.getId(), e.getLocalId());
 		Assert.assertEquals("new name", e.getName());
 
+		// delete entity
+		Assert.assertTrue(socialService.deleteEntityByApp(
+				Constants.CLIENT_AUTH_TOKEN, Constants.APPID, e.getLocalId()));
+
+		// create
+		e = socialService.createOrUpdateCommunityEntity(
+				Constants.CLIENT_AUTH_TOKEN, c.getId(), e);
+		Assert.assertNotNull(e);
+
+		// try delete entity by user
+		try {
+			socialService.deleteEntityByUser(Constants.USER_AUTH_TOKEN,
+					Constants.APPID, e.getLocalId());
+			Assert.fail("SecurityException not thrown");
+		} catch (SecurityException e1) {
+
+		}
+
+		// delete entity
+		Assert.assertTrue(socialService.deleteEntityByApp(
+				Constants.CLIENT_AUTH_TOKEN, Constants.APPID, e.getLocalId()));
+
 		// delete community
-		// TODO fix delete community with created entity throws Exception
-		// Assert.assertTrue(socialService.deleteCommunity(c.getId(),
-		// Constants.APPID, Constants.CLIENT_AUTH_TOKEN));
+		Assert.assertTrue(socialService.deleteCommunity(
+				Constants.CLIENT_AUTH_TOKEN, Constants.APPID, c.getId()));
 	}
 
 	@Test

@@ -423,17 +423,17 @@ public class SocialService {
 	 * 
 	 * @param token
 	 *            client access token
-	 * @param communityId
-	 *            community id
 	 * @param appId
 	 *            appId manager of community
-	 * 
+	 * @param communityId
+	 *            community id
 	 * @return true if the community has been deleted
 	 * @throws SocialServiceException
 	 * @throws SecurityException
 	 */
-	public boolean deleteCommunity(String token, String communityId,
-			String appId) throws SocialServiceException, SecurityException {
+	public boolean deleteCommunity(String token, String appId,
+			String communityId) throws SocialServiceException,
+			SecurityException {
 		try {
 			String relativePath = String.format("app/%s/community/%s", appId,
 					communityId);
@@ -615,6 +615,70 @@ public class SocialService {
 	}
 
 	/**
+	 * deletes an entity
+	 * 
+	 * Method reserved to CLIENT
+	 * 
+	 * @param token
+	 *            client access token
+	 * @param appId
+	 *            social application space containing the entity
+	 * @param localId
+	 *            local id of the entity
+	 * @return true if operation gone fine, false otherwise
+	 * @throws SocialServiceException
+	 */
+	public boolean deleteEntityByApp(String token, String appId, String localId)
+			throws SocialServiceException {
+		try {
+			String relativePath = String.format("app/%s/entity/%s", appId,
+					localId);
+			String json = RemoteConnector.deleteJSON(serviceUrl, relativePath,
+					token);
+			json = extractResultData(json);
+			return new Boolean(json);
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * deletes an entity
+	 * 
+	 * Method reserved to USER
+	 * 
+	 * @param token
+	 *            user access token
+	 * @param appId
+	 *            social application space containing the entity
+	 * @param localId
+	 *            local id of the entity
+	 * @return true if operation gone fine, false otherwise
+	 * @throws SocialServiceException
+	 */
+	public boolean deleteEntityByUser(String token, String appId, String localId)
+			throws SocialServiceException {
+		try {
+			String relativePath = String.format("user/%s/entity/%s", appId,
+					localId);
+			String json = RemoteConnector.deleteJSON(serviceUrl, relativePath,
+					token);
+			json = extractResultData(json);
+			return new Boolean(json);
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
 	 * Retrieves information about entity
 	 * 
 	 * Method reserved to CLIENT
@@ -645,33 +709,6 @@ public class SocialService {
 		}
 	}
 
-	/**
-	 * deletes a user entity
-	 * 
-	 * @param token
-	 *            user access token
-	 * @param appId
-	 *            social application space containing the entity
-	 * @param localId
-	 *            id of the entity to delete
-	 * @return true if operation gone fine, false otherwise
-	 * @throws SecurityException
-	 * @throws SocialServiceException
-	 */
-	// public boolean deleteUserEntity(String token, String appId, String
-	// localId)
-	// throws SecurityException, SocialServiceException {
-	// try {
-	// String relativePath = String.format("user/%s/entity/%s", appId,
-	// localId);
-	// String json = RemoteConnector.deleteJSON(serviceUrl, relativePath,
-	// token);
-	// json = extractResultData(json);
-	// return new Boolean(json);
-	// } catch (Exception e) {
-	// throw new SocialServiceException(e);
-	// }
-	// }
 	/**
 	 * retrieves the entities created by the community
 	 * 
