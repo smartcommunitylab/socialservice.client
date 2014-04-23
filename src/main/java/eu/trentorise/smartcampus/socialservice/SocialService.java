@@ -28,6 +28,7 @@ import eu.trentorise.smartcampus.socialservice.beans.EntityInfo;
 import eu.trentorise.smartcampus.socialservice.beans.EntityType;
 import eu.trentorise.smartcampus.socialservice.beans.Group;
 import eu.trentorise.smartcampus.socialservice.beans.Limit;
+import eu.trentorise.smartcampus.socialservice.beans.Rating;
 import eu.trentorise.smartcampus.socialservice.beans.Result;
 
 /**
@@ -869,6 +870,34 @@ public class SocialService {
 	}
 
 	/**
+	 * retrieves the entity shared with the user
+	 * 
+	 * @param token
+	 *            user access token
+	 * @param entityURI
+	 *            social entity URI
+	 * @return the {@link Entity} object
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public Entity getEntitySharedWithUser(String token, String entityURI)
+			throws SecurityException, SocialServiceException {
+		try {
+			String relativePath = String.format("user/shared/%s", entityURI);
+			String json = RemoteConnector.getJSON(serviceUrl, relativePath,
+					token);
+			json = extractResultData(json);
+			return JsonUtils.toObject(json, Entity.class);
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
 	 * retrieves the entities shared with the community
 	 * 
 	 * @param token
@@ -1015,6 +1044,106 @@ public class SocialService {
 					token, convertLimit(limit));
 			json = extractResultData(json);
 			return JsonUtils.toObjectList(json, EntityType.class);
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * retrieves user rating for given social entity
+	 * 
+	 * @param token
+	 *            user access token
+	 * @param appId
+	 *            social application space containing the entity
+	 * @param localId
+	 *            entity local id
+	 * @return rating object or null if user has not express before
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public Rating getRatingByUser(String token, String appId, String localId)
+			throws SecurityException, SocialServiceException {
+		try {
+			String relativePath = String.format("user/%s/rating/%s", appId,
+					localId);
+			String json = RemoteConnector.getJSON(serviceUrl, relativePath,
+					token, null);
+			json = extractResultData(json);
+			return JsonUtils.toObject(json, Rating.class);
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * delete user rating for given social entity
+	 * 
+	 * @param token
+	 *            user access token
+	 * @param appId
+	 *            social application space containing the entity
+	 * @param localId
+	 *            entity local id
+	 * @return rating object or SecurityException if user has not express before
+	 *         or entity not exist
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public boolean removeRatingByUser(String token, String appId, String localId)
+			throws SecurityException, SocialServiceException {
+		try {
+			String relativePath = String.format("user/%s/rating/%s", appId,
+					localId);
+			String json = RemoteConnector.deleteJSON(serviceUrl, relativePath,
+					token, null);
+			json = extractResultData(json);
+			return new Boolean(json);
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * rates a social entity
+	 * 
+	 * Method allowed for USER
+	 * 
+	 * @param token
+	 *            user access token
+	 * @param appId
+	 *            social application space containing the entity
+	 * @param localId
+	 *            entity local Id
+	 * @param rate
+	 *            rate, value between 0 and 5
+	 * @return true if operation gone fine, false otherwise
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public boolean rateEntityByUser(String token, String appId, String localId,
+			double rate) throws SecurityException, SocialServiceException {
+		try {
+			String relativePath = String.format("user/%s/rating/%s", appId,
+					localId);
+			Rating rating = new Rating();
+			rating.setRating(rate);
+			String json = RemoteConnector.postJSON(serviceUrl, relativePath,
+					JsonUtils.toJSON(rating), token, null);
+			json = extractResultData(json);
+			return new Boolean(json);
 		} catch (SecurityException e) {
 			throw e;
 		} catch (IllegalArgumentException e) {

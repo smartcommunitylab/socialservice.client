@@ -23,7 +23,9 @@ import java.util.UUID;
 import junit.framework.Assert;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import eu.trentorise.smartcampus.socialservice.beans.Community;
 import eu.trentorise.smartcampus.socialservice.beans.Entity;
@@ -35,6 +37,9 @@ import eu.trentorise.smartcampus.socialservice.beans.Visibility;
 public class TestClient {
 
 	private SocialService socialService;
+
+	@Rule
+	public ExpectedException thrown = ExpectedException.none();
 
 	@Before
 	public void init() {
@@ -452,6 +457,51 @@ public class TestClient {
 				name,
 				socialService.getEntityType(Constants.USER_AUTH_TOKEN,
 						type.getId()).getName());
+
+	}
+
+	@Test
+	public void rating() throws SecurityException, SocialServiceException {
+		EntityType entityType = new EntityType("SocialService Client Type "
+				+ System.currentTimeMillis(), "image/png");
+		entityType = socialService.createEntityType(Constants.USER_AUTH_TOKEN,
+				entityType);
+
+		String localId = UUID.randomUUID().toString();
+		try {
+			socialService.getRatingByUser(Constants.USER_AUTH_TOKEN,
+					Constants.APPID, localId);
+			Assert.fail("Exception not thrown");
+		} catch (SecurityException e) {
+
+		}
+		Entity e = new Entity();
+		e.setLocalId(localId);
+		e.setName("name");
+		e.setType(entityType.getId());
+
+		e = socialService.createOrUpdateUserEntityByApp(
+				Constants.CLIENT_AUTH_TOKEN, Constants.APPID,
+				Constants.OWNER_ID, e);
+
+		Assert.assertTrue(socialService.rateEntityByUser(
+				Constants.USER_AUTH_TOKEN, Constants.APPID, localId, 2.0d));
+
+		Assert.assertEquals(
+				2d,
+				socialService.getRatingByUser(Constants.USER_AUTH_TOKEN,
+						Constants.APPID, localId).getRating());
+
+		Assert.assertTrue(socialService.removeRatingByUser(
+				Constants.USER_AUTH_TOKEN, Constants.APPID, localId));
+
+		try {
+			socialService.getRatingByUser(Constants.USER_AUTH_TOKEN,
+					Constants.APPID, localId);
+			Assert.fail("Exception not thrown");
+		} catch (SecurityException e1) {
+
+		}
 
 	}
 }
