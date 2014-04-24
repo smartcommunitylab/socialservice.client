@@ -22,6 +22,7 @@ import java.util.Map;
 
 import eu.trentorise.smartcampus.network.JsonUtils;
 import eu.trentorise.smartcampus.network.RemoteConnector;
+import eu.trentorise.smartcampus.socialservice.beans.Comment;
 import eu.trentorise.smartcampus.socialservice.beans.Community;
 import eu.trentorise.smartcampus.socialservice.beans.Entity;
 import eu.trentorise.smartcampus.socialservice.beans.EntityInfo;
@@ -1119,7 +1120,7 @@ public class SocialService {
 	/**
 	 * rates a social entity
 	 * 
-	 * Method allowed for USER
+	 * Method reserved to USER
 	 * 
 	 * @param token
 	 *            user access token
@@ -1144,6 +1145,194 @@ public class SocialService {
 					JsonUtils.toJSON(rating), token, null);
 			json = extractResultData(json);
 			return new Boolean(json);
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * creates a comment
+	 * 
+	 * Method reserved to USER
+	 * 
+	 * @param token
+	 *            user authentication token
+	 * @param commentBody
+	 *            comment content
+	 * @param appId
+	 *            social application space containing the entity
+	 * @param localId
+	 *            entity local id
+	 * @return the comment object
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public Comment createComment(String token, String commentBody,
+			String appId, String localId) throws SecurityException,
+			SocialServiceException {
+		try {
+			String relativePath = String.format("user/%s/comment/%s", appId,
+					localId);
+			Comment comment = new Comment();
+			comment.setText(commentBody);
+			String json = RemoteConnector.postJSON(serviceUrl, relativePath,
+					JsonUtils.toJSON(comment), token, null);
+			json = extractResultData(json);
+			return JsonUtils.toObject(json, Comment.class);
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * deletes a comment. Comment is not really deleted, function flags comment
+	 * as deleted and replaces the content with a standard sentence (such as:
+	 * comment removed by author)
+	 * 
+	 * Method reserved to USER
+	 * 
+	 * @param token
+	 *            user authentication token
+	 * @param commentId
+	 *            comment id
+	 * @return comment deleted
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public Comment deleteComment(String token, String commentId)
+			throws SecurityException, SocialServiceException {
+		try {
+			String relativePath = String.format("user/comment/%s", commentId);
+			String json = RemoteConnector.deleteJSON(serviceUrl, relativePath,
+					token, null);
+			json = extractResultData(json);
+			return JsonUtils.toObject(json, Comment.class);
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * remove all comments bound to a social entity. Only owner of entity can
+	 * use this method.
+	 * 
+	 * Method reserved to USER
+	 * 
+	 * @param token
+	 *            user authentication token
+	 * @param appId
+	 *            social application space containing the entity
+	 * @param localId
+	 *            entity local Id
+	 * @return true if operation gone fine, false otherwise
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public boolean cleanComments(String token, String appId, String localId)
+			throws SecurityException, SocialServiceException {
+		try {
+			String relativePath = String.format("user/%s/comment/%s", appId,
+					localId);
+			String json = RemoteConnector.deleteJSON(serviceUrl, relativePath,
+					token, null);
+			json = extractResultData(json);
+			return Boolean.parseBoolean(json);
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * retrieves the a JSON string representation of the comment
+	 * 
+	 * Method reserved to USER
+	 * 
+	 * @param token
+	 *            user authentication token
+	 * @param commentId
+	 *            comment id
+	 * @return JSON of comment as String
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public String getCommentJSONById(String token, String commentId)
+			throws SecurityException, SocialServiceException {
+		try {
+			String relativePath = String.format("user/comment/%s", commentId);
+			String json = RemoteConnector.getJSON(serviceUrl, relativePath,
+					token, null);
+			json = extractResultData(json);
+			return json;
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * retrieves the a JSON string representation of all the comment bound to a
+	 * social entity
+	 * 
+	 * Method reserved to USER
+	 * 
+	 * @param token
+	 *            user authentication token
+	 * @param appId
+	 *            social application space containing the entity
+	 * @param localId
+	 *            entity local id
+	 * @param authorFilter
+	 *            filter for comment author, null to not use it
+	 * @param textFilter
+	 *            filter for comment text, null to not use it
+	 * @param limit
+	 *            filter and pagination criteria
+	 * @return JSON of comments as String
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public String getCommentJSONByEntity(String token, String appId,
+			String localId, String authorFilter, String textFilter, Limit limit)
+			throws SecurityException, SocialServiceException {
+		try {
+			Map<String, Object> params = convertLimit(limit);
+			if (params == null) {
+				params = new HashMap<String, Object>();
+			}
+
+			if (authorFilter != null && !authorFilter.trim().isEmpty()) {
+				params.put("author", authorFilter);
+			}
+
+			if (textFilter != null && !textFilter.trim().isEmpty()) {
+				params.put("commentText", textFilter);
+			}
+
+			String relativePath = String.format("user/%s/comment/%s", appId,
+					localId);
+			String json = RemoteConnector.getJSON(serviceUrl, relativePath,
+					token, params);
+			json = extractResultData(json);
+			return json;
 		} catch (SecurityException e) {
 			throw e;
 		} catch (IllegalArgumentException e) {

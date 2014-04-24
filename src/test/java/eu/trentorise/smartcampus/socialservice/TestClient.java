@@ -27,6 +27,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import eu.trentorise.smartcampus.socialservice.beans.Comment;
 import eu.trentorise.smartcampus.socialservice.beans.Community;
 import eu.trentorise.smartcampus.socialservice.beans.Entity;
 import eu.trentorise.smartcampus.socialservice.beans.EntityInfo;
@@ -502,6 +503,39 @@ public class TestClient {
 		} catch (SecurityException e1) {
 
 		}
+	}
+
+	@Test
+	public void comments() throws Exception {
+		EntityType entityType = new EntityType("SocialService Client Type "
+				+ System.currentTimeMillis(), "image/png");
+		entityType = socialService.createEntityType(Constants.USER_AUTH_TOKEN,
+				entityType);
+
+		Entity e = new Entity();
+		e.setLocalId("" + System.currentTimeMillis());
+		e.setName("name");
+		e.setType(entityType.getId());
+
+		e = socialService.createOrUpdateUserEntityByApp(
+				Constants.CLIENT_AUTH_TOKEN, Constants.APPID,
+				Constants.OWNER_ID, e);
+
+		Assert.assertEquals("\"[]\"", socialService.getCommentJSONByEntity(
+				Constants.USER_AUTH_TOKEN, Constants.APPID, e.getLocalId(),
+				null, null, null));
+
+		Comment comment = socialService.createComment(
+				Constants.USER_AUTH_TOKEN, "my comment", Constants.APPID,
+				e.getLocalId());
+		Assert.assertNotNull(comment);
+
+		Assert.assertNotSame("\"[]\"", socialService.getCommentJSONByEntity(
+				Constants.USER_AUTH_TOKEN, Constants.APPID, e.getLocalId(),
+				null, null, null));
+
+		Assert.assertNotSame("\"[]\"", socialService.getCommentJSONById(
+				Constants.USER_AUTH_TOKEN, comment.getId()));
 
 	}
 }
