@@ -405,8 +405,7 @@ public class SocialService {
 			Community community) throws SocialServiceException,
 			SecurityException {
 		try {
-			String relativePath = String.format("app/%s/community",
-					Constants.APPID);
+			String relativePath = String.format("app/%s/community", appId);
 			String json = RemoteConnector.postJSON(serviceUrl, relativePath,
 					JsonUtils.toJSON(community), token);
 			json = extractResultData(json);
