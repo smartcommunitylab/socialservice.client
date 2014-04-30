@@ -716,21 +716,23 @@ public class SocialService {
 	 * 
 	 * @param token
 	 *            client access token
+	 * @param appId
+	 *            social application space containing the entity
 	 * @param communityId
 	 *            community ID
 	 * @param limit
 	 *            filter and pagination criteria
-	 * 
 	 * @return the {@link Entities} object with list of resources created by the
 	 *         community
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public List<Entity> getCommunityEntities(String token, String communityId,
-			Limit limit) throws SecurityException, SocialServiceException {
+	public List<Entity> getCommunityEntities(String token, String appId,
+			String communityId, Limit limit) throws SecurityException,
+			SocialServiceException {
 		try {
 			String relativePath = String.format("app/%s/community/%s/entity",
-					Constants.APPID, communityId);
+					appId, communityId);
 			String json = RemoteConnector.getJSON(serviceUrl, relativePath,
 					token, convertLimit(limit));
 			json = extractResultData(json);
@@ -749,21 +751,23 @@ public class SocialService {
 	 * 
 	 * @param token
 	 *            client access token
+	 * @param appId
+	 *            social application space containing the entity
 	 * @param communityId
 	 *            community ID
 	 * @param localId
 	 *            entity ID
-	 * 
 	 * @return the {@link Entity} object
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public Entity getCommunityEntity(String token, String communityId,
-			String localId) throws SecurityException, SocialServiceException {
+	public Entity getCommunityEntity(String token, String appId,
+			String communityId, String localId) throws SecurityException,
+			SocialServiceException {
 		try {
 			String relativePath = String.format(
-					"app/%s/community/%s/entity/%s", Constants.APPID,
-					communityId, localId);
+					"app/%s/community/%s/entity/%s", appId, communityId,
+					localId);
 			String json = RemoteConnector.getJSON(serviceUrl, relativePath,
 					token);
 			json = extractResultData(json);
@@ -782,21 +786,22 @@ public class SocialService {
 	 * 
 	 * @param token
 	 *            client access token
+	 * @param appId
+	 *            social application space containing the entity
 	 * @param communityId
 	 *            community ID
 	 * @param entity
 	 *            entity to create
-	 * 
 	 * @return {@link Entity} object representing entity created
 	 * @throws SecurityException
 	 * @throws SocialServiceException
 	 */
-	public Entity createOrUpdateCommunityEntity(String token,
+	public Entity createOrUpdateCommunityEntity(String token, String appId,
 			String communityId, Entity entity) throws SecurityException,
 			SocialServiceException {
 		try {
 			String relativePath = String.format("app/%s/community/%s/entity",
-					Constants.APPID, communityId);
+					appId, communityId);
 			String json = RemoteConnector.postJSON(serviceUrl, relativePath,
 					JsonUtils.toJSON(entity), token);
 			json = extractResultData(json);

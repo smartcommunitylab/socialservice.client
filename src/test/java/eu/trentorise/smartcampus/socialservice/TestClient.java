@@ -244,7 +244,7 @@ public class TestClient {
 		Assert.assertNotNull(c);
 
 		List<Entity> entities = socialService.getCommunityEntities(
-				Constants.CLIENT_AUTH_TOKEN, c.getId(), null);
+				Constants.CLIENT_AUTH_TOKEN, Constants.APPID, c.getId(), null);
 		int entitiesNumber = entities.size();
 
 		Entity e = new Entity();
@@ -254,11 +254,11 @@ public class TestClient {
 
 		// create
 		e = socialService.createOrUpdateCommunityEntity(
-				Constants.CLIENT_AUTH_TOKEN, c.getId(), e);
+				Constants.CLIENT_AUTH_TOKEN, Constants.APPID, c.getId(), e);
 		Assert.assertNotNull(e);
 
 		entities = socialService.getCommunityEntities(
-				Constants.CLIENT_AUTH_TOKEN, c.getId(), null);
+				Constants.CLIENT_AUTH_TOKEN, Constants.APPID, c.getId(), null);
 		Assert.assertEquals(entitiesNumber + 1, entities.size());
 
 		// update
@@ -266,11 +266,12 @@ public class TestClient {
 		Assert.assertEquals(
 				"new name",
 				socialService.createOrUpdateCommunityEntity(
-						Constants.CLIENT_AUTH_TOKEN, c.getId(), e).getName());
+						Constants.CLIENT_AUTH_TOKEN, Constants.APPID,
+						c.getId(), e).getName());
 
 		// read
 		e = socialService.getCommunityEntity(Constants.CLIENT_AUTH_TOKEN,
-				c.getId(), e.getLocalId());
+				Constants.APPID, c.getId(), e.getLocalId());
 		Assert.assertEquals("new name", e.getName());
 
 		// delete entity
@@ -279,7 +280,7 @@ public class TestClient {
 
 		// create
 		e = socialService.createOrUpdateCommunityEntity(
-				Constants.CLIENT_AUTH_TOKEN, c.getId(), e);
+				Constants.CLIENT_AUTH_TOKEN, Constants.APPID, c.getId(), e);
 		Assert.assertNotNull(e);
 
 		// try delete entity by user
@@ -401,9 +402,10 @@ public class TestClient {
 				Constants.USER_AUTH_TOKEN, null).size();
 
 		int size = socialService.getCommunityEntities(
-				Constants.CLIENT_AUTH_TOKEN, c.getId(), null).size();
+				Constants.CLIENT_AUTH_TOKEN, Constants.APPID, c.getId(), null)
+				.size();
 		req = socialService.createOrUpdateCommunityEntity(
-				Constants.CLIENT_AUTH_TOKEN, c.getId(), req);
+				Constants.CLIENT_AUTH_TOKEN, Constants.APPID, c.getId(), req);
 
 		Assert.assertEquals(sharedSize + 1, socialService
 				.getEntitiesSharedWithUser(Constants.USER_AUTH_TOKEN, null)
@@ -417,7 +419,7 @@ public class TestClient {
 
 		req.setVisibility(new Visibility());
 		req = socialService.createOrUpdateCommunityEntity(
-				Constants.CLIENT_AUTH_TOKEN, c.getId(), req);
+				Constants.CLIENT_AUTH_TOKEN, Constants.APPID, c.getId(), req);
 
 		Assert.assertEquals(sharedSize, socialService
 				.getEntitiesSharedWithUser(Constants.USER_AUTH_TOKEN, null)
@@ -434,9 +436,10 @@ public class TestClient {
 		Assert.assertEquals(
 				size + 1,
 				socialService.getCommunityEntities(Constants.CLIENT_AUTH_TOKEN,
-						c.getId(), null).size());
+						Constants.APPID, c.getId(), null).size());
 		Assert.assertNotNull(socialService.getCommunityEntity(
-				Constants.CLIENT_AUTH_TOKEN, c.getId(), localId));
+				Constants.CLIENT_AUTH_TOKEN, Constants.APPID, c.getId(),
+				localId));
 	}
 
 	@Test
