@@ -204,6 +204,9 @@ public class TestClient {
 				Constants.APPID, e.getLocalId());
 		Assert.assertEquals("new name", e.getName());
 
+		e = socialService.getUserEntity(Constants.USER_AUTH_TOKEN, e.getUri());
+		Assert.assertEquals("new name", e.getName());
+
 		e.setName("new name by user");
 
 		Assert.assertNotNull(socialService.updateUserEntityByUser(

@@ -511,6 +511,34 @@ public class SocialService {
 	}
 
 	/**
+	 * retrieves the entity created by the user
+	 * 
+	 * @param token
+	 *            user access token
+	 * @param entityURI
+	 *            social entity URI
+	 * @return the {@link Entity} object
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public Entity getUserEntity(String token, String entityURI)
+			throws SecurityException, SocialServiceException {
+		try {
+			String relativePath = String.format("user/entity/%s", entityURI);
+			String json = RemoteConnector.getJSON(serviceUrl, relativePath,
+					token);
+			json = extractResultData(json);
+			return JsonUtils.toObject(json, Entity.class);
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
 	 * creates or update a user entity.
 	 * 
 	 * Method reserved to CLIENT
