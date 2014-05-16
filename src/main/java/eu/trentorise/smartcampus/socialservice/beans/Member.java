@@ -16,8 +16,11 @@
 
 package eu.trentorise.smartcampus.socialservice.beans;
 
-public class Member {
+import java.io.Serializable;
 
+public class Member implements Serializable {
+
+	private static final long serialVersionUID = 5177978103812198631L;
 	private String id;
 	private String name;
 	private String surname;

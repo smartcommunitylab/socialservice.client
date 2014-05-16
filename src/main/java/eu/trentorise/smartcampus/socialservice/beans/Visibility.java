@@ -16,10 +16,12 @@
 
 package eu.trentorise.smartcampus.socialservice.beans;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class Visibility {
+public class Visibility implements Serializable {
 
+	private static final long serialVersionUID = 6637410201659374309L;
 	private List<String> users;
 	private List<String> communities;
 	private List<String> groups;

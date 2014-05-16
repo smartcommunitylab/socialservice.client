@@ -1,7 +1,10 @@
 package eu.trentorise.smartcampus.socialservice.beans;
 
+import java.io.Serializable;
 
-public class EntityInfo {
+public class EntityInfo implements Serializable {
+
+	private static final long serialVersionUID = 8215906722557040485L;
 
 	public String uri;
 	public String localId;

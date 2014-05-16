@@ -16,7 +16,11 @@
 
 package eu.trentorise.smartcampus.socialservice.beans;
 
-public class Rating {
+import java.io.Serializable;
+
+public class Rating implements Serializable {
+
+	private static final long serialVersionUID = -2377665650048992239L;
 	private String userId;
 	private String entityURI;
 	private double rating;
