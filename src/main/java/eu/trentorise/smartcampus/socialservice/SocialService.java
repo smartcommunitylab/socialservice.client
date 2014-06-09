@@ -931,6 +931,40 @@ public class SocialService {
 	}
 
 	/**
+	 * retrieves the entity shared with the user
+	 * 
+	 * @param token
+	 *            user access token
+	 * @param appId
+	 *            social application space containing the entity
+	 * @param userId
+	 *            user destination of sharing operation
+	 * @param entityURI
+	 *            social entity URI
+	 * @return the {@link Entity} object
+	 * @throws SecurityException
+	 * @throws SocialServiceException
+	 */
+	public Entity getEntitySharedWithUserByApp(String token, String appId,
+			String userId, String entityURI) throws SecurityException,
+			SocialServiceException {
+		try {
+			String relativePath = String.format("app/%s/shared/%s/%s", appId,
+					userId, entityURI);
+			String json = RemoteConnector.getJSON(serviceUrl, relativePath,
+					token);
+			json = extractResultData(json);
+			return JsonUtils.toObject(json, Entity.class);
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
 	 * retrieves the entities shared with the community
 	 * 
 	 * @param token
