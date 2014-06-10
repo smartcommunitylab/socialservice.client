@@ -678,6 +678,38 @@ public class SocialService {
 	/**
 	 * deletes an entity
 	 * 
+	 * Method reserved to CLIENT
+	 * 
+	 * @param token
+	 *            client access token
+	 * @param appId
+	 *            social application space containing the entity
+	 * @param entityURI
+	 *            unique identifier of entity
+	 * @return true if operation gone fine, false otherwise
+	 * @throws SocialServiceException
+	 */
+	public boolean deleteEntityURIByApp(String token, String appId,
+			String entityURI) throws SocialServiceException {
+		try {
+			String relativePath = String.format("app/%s/entity/uri/%s", appId,
+					entityURI);
+			String json = RemoteConnector.deleteJSON(serviceUrl, relativePath,
+					token);
+			json = extractResultData(json);
+			return new Boolean(json);
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * deletes an entity
+	 * 
 	 * Method reserved to USER
 	 * 
 	 * @param token
@@ -694,6 +726,38 @@ public class SocialService {
 		try {
 			String relativePath = String.format("user/%s/entity/%s", appId,
 					localId);
+			String json = RemoteConnector.deleteJSON(serviceUrl, relativePath,
+					token);
+			json = extractResultData(json);
+			return new Boolean(json);
+		} catch (SecurityException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new SocialServiceException(e);
+		}
+	}
+
+	/**
+	 * deletes an entity
+	 * 
+	 * Method reserved to USER
+	 * 
+	 * @param token
+	 *            user access token
+	 * @param appId
+	 *            social application space containing the entity
+	 * @param entityURI
+	 *            unique identifier of entity
+	 * @return true if operation gone fine, false otherwise
+	 * @throws SocialServiceException
+	 */
+	public boolean deleteEntityURIByUser(String token, String appId,
+			String entityURI) throws SocialServiceException {
+		try {
+			String relativePath = String.format("user/%s/entity/uri/%s", appId,
+					entityURI);
 			String json = RemoteConnector.deleteJSON(serviceUrl, relativePath,
 					token);
 			json = extractResultData(json);
